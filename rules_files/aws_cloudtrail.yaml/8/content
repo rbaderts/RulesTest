@@ -1,0 +1,5961 @@
+- required_engine_version: 8
+
+# Configuration lists for use in AWS rules
+
+# Only instances with an imageId in this list are approved.
+- list: approved_image_ids
+  items: []
+
+# Only instances launched on regions in this list are approved.
+- list: approved_regions
+  items:
+    - us-east-0
+
+- list: aws_latest_runtimes
+  items:
+    - nodejs14.x
+    - python3.9
+    - ruby2.7
+    - java11
+    - go1.x
+    - dotnetcore3.1
+
+- list: aws_supported_runtimes
+  items:
+    - nodejs14.x
+    - nodejs12.x
+    - nodejs10.x
+    - python3.9
+    - python3.8
+    - python3.7
+    - python3.6
+    - python2.7
+    - ruby2.7
+    - ruby2.5
+    - java11
+    - java8
+    - java8.al2
+    - go1.x
+    - dotnetcore3.1
+    - dotnetcore2.1
+
+- list: disallowed_aws_regions
+  items: []
+
+- list: system_shells
+  items:
+    - /bin/bash
+    - /bin/csh
+    - /bin/ksh
+    - /bin/sh
+    - /bin/tcsh
+    - /bin/zsh
+
+- list: trusted_aws_users
+  items: []
+
+- list: trusted_ip_addresses
+  items: []
+
+- list: watched_buckets
+  items: []
+
+- rule: Create App Runner Service from Code Repository
+  desc: Detect the building and deployment of an App Runner service from a code repository.
+  condition:
+    aws.eventSource="apprunner.amazonaws.com" and
+    aws.eventName="CreateService" and
+    jevt.value[/requestParameters/sourceConfiguration/codeRepository] exists and
+    not aws.errorCode exists
+  output:
+    An App Runner service has been created from an image built from a code repository
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     service name=%jevt.value[/requestParameters/serviceName],
+     code repository=%jevt.value[/requestParameters/sourceConfiguration/codeRepository/repositoryUrl],
+     branch name=%jevt.value[/requestParameters/sourceConfiguration/codeRepository/sourceCodeVersion/value])
+  priority: NOTICE
+  tags:
+    - Cloud
+    - AWS
+    - AWS_AppRunner
+  source: aws_cloudtrail
+
+- rule: Create App Runner Service from Image Repository
+  desc: Detect the deployment of an App Runner service from an image repository.
+  condition:
+    aws.eventSource="apprunner.amazonaws.com" and
+    aws.eventName="CreateService" and
+    jevt.value[/requestParameters/sourceConfiguration/imageRepository] exists and
+    not aws.errorCode exists
+  output:
+    An App Runner service has been created from an image pulled from a repository
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     service name=%jevt.value[/requestParameters/serviceName],
+     image identifier=%jevt.value[/requestParameters/sourceConfiguration/imageRepository/imageIdentifier])
+  priority: NOTICE
+  tags:
+    - Cloud
+    - AWS
+    - AWS_AppRunner
+  source: aws_cloudtrail
+
+- rule: Delete App Runner Service
+  desc: Detect the deletion of an App Runner service.
+  condition:
+    aws.eventSource="apprunner.amazonaws.com" and
+    aws.eventName="DeleteService" and
+    not aws.errorCode exists
+  output:
+    An App Runner service has been deleted
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     service name=%jevt.value[/responseElements/service/serviceName])
+  priority: NOTICE
+  tags:
+    - Cloud
+    - AWS
+    - AWS_AppRunner
+  source: aws_cloudtrail
+
+- rule: Deploy App Runner Service
+  desc: Detect the deployment of an App Runner service.
+  condition:
+    aws.eventSource="apprunner.amazonaws.com" and
+    aws.eventName="StartDeployment" and
+    not aws.errorCode exists
+  output:
+    An App Runner service has been deployed
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     service arn=%jevt.value[/requestParameters/serviceArn])
+  priority: NOTICE
+  tags:
+    - Cloud
+    - AWS
+    - AWS_AppRunner
+  source: aws_cloudtrail
+
+- rule: Create Autoscaling Group without ELB Health Checks
+  desc: Detect the creation of an autoscaling group associated with with a load balancer which is not using health checks.
+  condition:
+    aws.eventName="CreateAutoScalingGroup" and not aws.errorCode exists
+    and jevt.value[/requestParameters/healthCheckType]!="ELB"
+  output:
+    An autoscaling group associated with a load balancer has been created
+    which is not using health checks
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     autoscaling group name=%jevt.value[/requestParameters/autoScalingGroupName])
+  priority: NOTICE
+  tags:
+    - Cloud
+    - AWS
+    - AWS_Autoscaling
+    - PCI
+    - PCI_DSS
+    - PCI_DSS_2.2
+    - AWS_FSBP
+    - AWS_FSBP_autoscaling.1
+    - AWS_WAF
+    - AWS_WAF_SEC-1
+  source: aws_cloudtrail
+
+- rule: Update Autoscaling Group without ELB Health Checks
+  desc: Detect the update of an autoscaling group associated with with a load balancer which is not using health checks.
+  condition:
+    aws.eventName="UpdateAutoScalingGroup" and not aws.errorCode exists
+    and jevt.value[/requestParameters/healthCheckType]!="ELB"
+  output:
+    An autoscaling group associated with a load balancer has been updated
+    which is not using health checks
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     autoscaling group name=%jevt.value[/requestParameters/autoScalingGroupName])
+  priority: NOTICE
+  tags:
+    - Cloud
+    - AWS
+    - AWS_Autoscaling
+    - PCI
+    - PCI_DSS
+    - PCI_DSS_2.2
+    - AWS_FSBP
+    - AWS_FSBP_autoscaling.1
+    - AWS_WAF
+    - AWS_WAF_SEC-1
+  source: aws_cloudtrail
+
+- rule: AWS Command Executed by Untrusted User
+  desc: Detect AWS command execution by an untrusted user.
+  condition:
+    not aws.errorCode exists and
+    not aws.user in (trusted_aws_users)
+  exceptions:
+  - name: aws_user
+    fields: [aws.user]
+  output:
+    An AWS command has been executed by an untrusted user
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     event source=%jevt.value[/eventSource],
+     event name=%jevt.value[/eventName])
+  priority: NOTICE
+  tags:
+    - Cloud
+    - AWS
+  source: aws_cloudtrail
+
+- rule: AWS Command Executed on Unused Region
+  desc: Detect AWS command execution on unused regions.
+  condition:
+    not aws.errorCode exists and
+    aws.region in (disallowed_aws_regions)
+  output:
+    An AWS command has been executed on an unused region
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region)
+  priority: CRITICAL
+  tags:
+    - Cloud
+    - AWS
+    - SOC2
+    - SOC2_CC6.1
+    - NIST
+    - NIST_800-53
+    - NIST_800-53_AC-2(12)
+    - FedRAMP
+    - FedRAMP_AC-2(12)
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.12.1.2
+    - HIPAA
+    - HIPAA_164.308(a)
+    - HIPAA_164.312(a)
+    - GDPR
+    - GDPR_32.1
+    - GDPR_32.2
+    - MITRE
+    - MITRE_T1526_cloud_service_discovery
+    - MITRE_T1535_unused_unsupported_cloud_regions
+    - MITRE_TA0005_defense_evasion
+    - MITRE_TA0007_discovery
+    - AWS_WAF
+    - AWS_WAF_SEC-1
+  source: aws_cloudtrail
+
+- rule: AWS Suspicious IP Inbound Request
+  desc: Detect inbound requests from known suspicious IP sources, such as TOR exit nodes, to AWS services.
+  condition:
+    aws.sourceIP in (ti_anon_ips) and
+    not (aws.eventName="ConsoleLogin" and jevt.value[/responseElements/ConsoleLogin]="Failure")
+  exceptions:
+    - name: user_by_region
+      fields: [aws.user, aws.region]
+    - name: ip_whitelist
+      fields: [aws.sourceIP]
+  output:
+    Suspicious IP Inbound Request
+    (aws.sourceIP=%aws.sourceIP,
+    aws.region=%aws.region,
+    aws.eventName=%aws.eventName,
+    aws.user=%aws.user,
+    userAgent=%jevt.value[/userAgent],
+    errorMessage=%jevt.value[/errorMessage])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+  source: aws_cloudtrail
+
+- rule: CloudShell Environment Created
+  desc: Detect creation of a new Cloud Shell environment.
+  condition:
+    aws.eventSource="cloudshell.amazonaws.com" and
+    aws.eventName="CreateEnvironment" and
+    not aws.errorCode exists
+  output:
+    A new Cloud Shell environment has been created.
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     environment id=%jevt.value[/responseElements/EnvironmentId])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_CloudShell
+  source: aws_cloudtrail
+
+- rule: CloudTrail Trail Created
+  desc: Detect creation of a new trail.
+  condition:
+    aws.eventName="CreateTrail" and not aws.errorCode exists
+  output:
+    A new trail has been created.
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     trail name=%jevt.value[/requestParameters/name])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_CloudTrail
+    - SOC2
+    - SOC2_CC3.2
+    - SOC2_CC7.1
+    - SOC2_CC7.2
+    - GDPR
+    - GDPR_5.2
+    - GDPR_24.1
+    - GDPR_24.2
+    - GDPR_24.3
+    - GDPR_25.1
+    - GDPR_25.2
+    - GDPR_25.3
+    - GDPR_32.1
+    - GDPR_32.2
+    - GDPR_40.2
+    - MITRE
+    - MITRE_T1530_data_from_cloud_storage_object
+    - MITRE_TA0009_collection
+  source: aws_cloudtrail
+
+- rule: CloudTrail Trail Deleted
+  desc: Detect deletion of an existing trail.
+  condition:
+    aws.eventName="DeleteTrail" and not aws.errorCode exists
+  output:
+    An existing trail has been deleted.
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     trail name=%jevt.value[/requestParameters/name])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_CloudTrail
+    - SOC2
+    - SOC2_CC7.2
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.12.1.2
+    - MITRE
+    - MITRE_T1562_impair_defenses
+    - MITRE_T1562.001_disable_or_modify_tools
+    - MITRE_TA0005_defense_evasion
+    - AWS_WAF
+    - AWS_WAF_SEC-1
+  source: aws_cloudtrail
+
+- rule: CloudTrail Logfile Encryption Disabled
+  desc: Detect disabling the CloudTrail logfile encryption.
+  condition:
+    aws.eventName="UpdateTrail" and not aws.errorCode exists
+    and jevt.value[/requestParameters/kmsKeyId]=""
+  output:
+    The CloudTrail logfile encryption has been disabled.
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     resource name=%jevt.value[/requestParameters/name])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_CloudTrail
+    - SOC2
+    - SOC2_CC6.1
+    - SOC2_ CC6.7
+    - PCI
+    - PCI_DSS
+    - PCI_DSS_3.4
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.10.1.1
+    - ISO_27001_A.12.1.2
+    - ISO_27001_A.18.1.5
+    - GDPR
+    - GDPR_25.1
+    - GDPR_25.2
+    - GDPR_25.3
+    - GDPR_32.1
+    - GDPR_32.2
+    - CIS
+    - CIS_AWS
+    - CIS_AWS-1.3.0
+    - CIS_AWS-1.3.0_3.7
+    - AWS_FSBP
+    - AWS_FSBP_cloudtrail.2
+    - AWS_WAF
+    - AWS_WAF_SEC-8
+  source: aws_cloudtrail
+
+- rule: CloudTrail Logfile Validation Disabled
+  desc: Detect disabling the CloudTrail logfile validation.
+  condition:
+    aws.eventName="UpdateTrail" and not aws.errorCode exists
+    and jevt.value[/requestParameters/enableLogFileValidation]=false
+  output:
+    The CloudTrail logfile validation has been disabled.
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     resource name=%jevt.value[/requestParameters/name])
+  priority: NOTICE
+  tags:
+    - Cloud
+    - AWS
+    - AWS_CloudTrail
+    - PCI
+    - PCI_DSS
+    - PCI_DSS_10.5.2
+    - PCI_DSS_10.5.5
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.12.1.2
+    - GDPR
+    - GDPR_25.1
+    - GDPR_25.2
+    - GDPR_25.3
+    - CIS
+    - CIS_AWS
+    - CIS_AWS-1.3.0
+    - CIS_AWS-1.3.0_3.2
+    - AWS_FSBP
+    - AWS_FSBP_cloudtrail.4
+    - AWS_WAF
+    - AWS_WAF_SEC-1
+  source: aws_cloudtrail
+
+- rule: CloudTrail Logging Disabled
+  desc: The CloudTrail logging has been disabled
+    - this could be potentially malicious.
+  condition:
+    aws.eventName="StopLogging" and not aws.errorCode exists
+  output:
+    The CloudTrail logging has been disabled.
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     resource name=%jevt.value[/requestParameters/name])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_CloudTrail
+    - SOC2
+    - SOC2_CC7.2
+    - NIST
+    - NIST_800-171
+    - NIST_800-171_3.14.6
+    - NIST_800-171_3.3.1
+    - NIST_800-171_3.3.2
+    - NIST_800-53
+    - NIST_800-53_AU-2
+    - FedRAMP
+    - FedRAMP_AU-2
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.12.1.2
+    - ISO_27001_ A.18.1.3
+    - HIPAA
+    - HIPAA_164.308(a)
+    - HIPAA_164.312(b)
+    - HITRUST
+    - HITRUST_CSF
+    - HITRUST_CSF_01.p
+    - HITRUST_CSF_01.s
+    - HITRUST_CSF_06.i
+    - HITRUST_CSF_09.aa
+    - HITRUST_CSF_09.ab
+    - HITRUST_CSF_09.ad
+    - HITRUST_CSF_09.ae
+    - MITRE
+    - MITRE_T1562_impair_defenses
+    - MITRE_T1562.001_disable_or_modify_tools
+    - MITRE_TA0005_defense_evasion
+    - AWS_WAF
+    - AWS_WAF_SEC-1
+  source: aws_cloudtrail
+
+- rule: CloudTrail Multi-region Disabled
+  desc: Detect disabling CloudTrail multi-region.
+  condition:
+    aws.eventName="UpdateTrail" and not aws.errorCode exists
+    and jevt.value[/requestParameters/isMultiRegionTrail]=false
+  output:
+    The CloudTrail logfile validation has been disabled.
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     resource name=%jevt.value[/requestParameters/name])
+  priority: CRITICAL
+  tags:
+    - Cloud
+    - AWS
+    - AWS_CloudTrail
+    - SOC2
+    - SOC2_CC7.2
+    - PCI
+    - PCI_DSS
+    - PCI_DSS_10.1
+    - PCI_DSS_10.2.1
+    - PCI_DSS_10.2.2
+    - PCI_DSS_10.2.3
+    - PCI_DSS_10.2.4
+    - PCI_DSS_10.2.5
+    - PCI_DSS_10.2.6
+    - PCI_DSS_10.2.7
+    - PCI_DSS_10.3.1
+    - PCI_DSS_10.3.2
+    - PCI_DSS_10.3.3
+    - PCI_DSS_10.3.4
+    - PCI_DSS_10.3.5
+    - PCI_DSS_10.3.6
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.12.1.2
+    - ISO_27001_ A.18.1.3
+    - GDPR
+    - GDPR_25.1
+    - GDPR_25.2
+    - GDPR_25.3
+    - CIS
+    - CIS_AWS
+    - CIS_AWS-1.3.0
+    - CIS_AWS-1.3.0_3.1
+    - AWS_FSBP
+    - AWS_FSBP_cloudtrail.1
+    - AWS_WAF
+    - AWS_WAF_SEC-1
+  source: aws_cloudtrail
+
+- rule: CloudTrail Trail Updated
+  desc: Detect update of an existing trail.
+  condition:
+    aws.eventName="UpdateTrail" and not aws.errorCode exists
+  output:
+    An existing trail has been updated.
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     trail name=%jevt.value[/requestParameters/name])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_CloudTrail
+    - SOC2
+    - SOC2_CC7.2
+    - NIST
+    - NIST_800-53
+    - NIST_800-53_SI-4
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.12.1.2
+    - ISO_27001_A.18.1.3
+    - HIPAA
+    - HIPAA_164.308(a)
+    - GDPR
+    - GDPR_5.1
+    - GDPR_32.1
+    - GDPR_32.2
+    - MITRE
+    - MITRE_T1530_data_from_cloud_storage_object
+    - MITRE_T1565_data_manipulation
+    - MITRE_T1565.001_stored_data_manipulation
+    - MITRE_TA0009_collection
+    - MITRE_TA0040_impact
+  source: aws_cloudtrail
+
+- rule: CloudWatch Delete Alarms
+  desc: Detect deletion of an alarm.
+  condition:
+    aws.eventName="DeleteAlarms" and not aws.errorCode exists
+  output:
+    An alarm has been deleted.
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     alarm name=%jevt.value[/requestParameters/alarmNames/0])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_CloudWatch
+    - SOC2
+    - SOC2_CC7.2
+    - NIST
+    - NIST_800-53
+    - NIST_800-53_SI-4
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.16.1.2
+    - HIPAA
+    - HIPAA_164.308(a)
+    - GDPR
+    - GDPR_5.1
+    - GDPR_5.2
+    - GDPR_32.1
+    - GDPR_32.2
+    - MITRE
+    - MITRE_T1027_obfuscated_files_or_information
+    - MITRE_T1027.005_indicator_removal_from_tools
+    - MITRE_TA0005_defense_evasion
+    - AWS_WAF
+    - AWS_WAF_SEC-1
+  source: aws_cloudtrail
+
+- rule: CloudWatch Delete Log Group
+  desc: Detect deletion of a CLoudWatch log group.
+  condition:
+    aws.eventName="DeleteLogGroup" and not aws.errorCode exists
+  output:
+    A log group has been deleted.
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     log group name=%jevt.value[/requestParameters/logGroupName])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_CloudWatch
+    - SOC2
+    - SOC2_CC7.2
+    - NIST
+    - NIST_800-171
+    - NIST_800-171_3.14.6
+    - NIST_800-171_3.14.7
+    - NIST_800-53
+    - NIST_800-53_SI-4
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.18.1.3
+    - HIPAA
+    - HIPAA_164.308(a)
+    - HITRUST
+    - HITRUST_CSF
+    - HITRUST_CSF_01.x
+    - HITRUST_CSF_09.ab
+    - HITRUST_CSF_09.ac
+    - HITRUST_CSF_09.m
+    - HITRUST_CSF_11.a
+    - HITRUST_CSF_11.b
+    - GDPR
+    - GDPR_32.1
+    - GDPR_32.2
+    - MITRE
+    - MITRE_T1485_data_destruction
+    - MITRE_T1562_impair_defenses
+    - MITRE_T1562.001_disable_or_modify_tools
+    - MITRE_TA0005_defense_evasion
+    - MITRE_TA0040_impact
+    - AWS_WAF
+    - AWS_WAF_SEC-1
+  source: aws_cloudtrail
+
+- rule: CloudWatch Delete Log Stream
+  desc: Detect deletion of a CLoudWatch log stream.
+  condition:
+    aws.eventName="DeleteLogStream" and not aws.errorCode exists
+  output:
+    A log stream has been deleted.
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     log group name=%jevt.value[/requestParameters/logGroupName],
+     log stream name=%jevt.value[/requestParameters/logStreamName])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_CloudWatch
+    - SOC2
+    - SOC2_CC7.2
+    - NIST
+    - NIST_800-171
+    - NIST_800-171_3.14.6
+    - NIST_800-171_3.14.7
+    - NIST_800-53
+    - NIST_800-53_SI-4
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.18.1.3
+    - HIPAA
+    - HIPAA_164.308(a)
+    - HITRUST
+    - HITRUST_CSF
+    - HITRUST_CSF_01.x
+    - HITRUST_CSF_09.ab
+    - HITRUST_CSF_09.ac
+    - HITRUST_CSF_09.m
+    - HITRUST_CSF_11.a
+    - HITRUST_CSF_11.b
+    - GDPR
+    - GDPR_32.1
+    - GDPR_32.2
+    - MITRE
+    - MITRE_T1485_data_destruction
+    - MITRE_T1562_impair_defenses
+    - MITRE_T1562.001_disable_or_modify_tools
+    - MITRE_TA0005_defense_evasion
+    - MITRE_TA0040_impact
+    - AWS_WAF
+    - AWS_WAF_SEC-1
+  source: aws_cloudtrail
+
+- rule: Delete Config Rule
+  desc: Detect deletion of a configuration rule.
+  condition:
+    aws.eventName="DeleteConfigRule" and not aws.errorCode exists
+  output:
+    A configuration rule has been deleted
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     config rule name=%jevt.value[/requestParameters/configRuleName])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_Config
+    - SOC2
+    - SOC2_CC7.2
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.12.1.2
+    - MITRE
+    - MITRE_T1562_impair_defenses
+    - MITRE_T1562.001_disable_or_modify_tools
+    - MITRE_TA0005_defense_evasion
+  source: aws_cloudtrail
+
+- rule: Delete Configuration Aggregator
+  desc: Detect deletion of the configuration aggregator.
+  condition:
+    aws.eventName="DeleteConfigurationAggregator" and not aws.errorCode exists
+  output:
+    A configuration aggregator has been deleted.
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     configuration aggregator name=%jevt.value[/requestParameters/configurationAggregatorName])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_Config
+    - SOC2
+    - SOC2_CC7.2
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.12.1.2
+    - MITRE
+    - MITRE_T1562_impair_defenses
+    - MITRE_T1562.001_disable_or_modify_tools
+    - MITRE_TA0005_defense_evasion
+  source: aws_cloudtrail
+
+- rule: Delete Configuration Recorder
+  desc: Detect deletion of the configuration recorder.
+  condition:
+    aws.eventName="DeleteConfigurationRecorder" and not aws.errorCode exists
+  output:
+    The configuration recorder has been deleted.
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     recorder=%jevt.value[/requestParameters/configurationRecorderName])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_Config
+    - SOC2
+    - SOC2_CC7.2
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.12.1.2
+    - MITRE
+    - MITRE_T1562_impair_defenses
+    - MITRE_T1562.001_disable_or_modify_tools
+    - MITRE_TA0005_defense_evasion
+  source: aws_cloudtrail
+
+- rule: Delete Conformance Pack
+  desc: Detect deletion of a conformance pack.
+  condition:
+    aws.eventName="DeleteConformancePack" and not aws.errorCode exists
+  output:
+    A conformance pack has been deleted.
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     conformance pack name=%jevt.value[/requestParameters/conformancePackName])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_Config
+    - SOC2
+    - SOC2_CC7.2
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.12.1.2
+    - MITRE
+    - MITRE_T1562_impair_defenses
+    - MITRE_T1562.001_disable_or_modify_tools
+    - MITRE_TA0005_defense_evasion
+  source: aws_cloudtrail
+
+- rule: Delete Delivery Channel
+  desc: Detect deletion of the delivery channel.
+  condition:
+    aws.eventName="DeleteDeliveryChannel" and not aws.errorCode exists
+  output:
+    The delivery channel has been deleted.
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     delivery channel name=%jevt.value[/requestParameters/deliveryChannelName])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_Config
+    - SOC2
+    - SOC2_CC7.2
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.12.1.2
+    - ISO_27001_A.16.1.2
+    - MITRE
+    - MITRE_T1562_impair_defenses
+    - MITRE_T1562.001_disable_or_modify_tools
+    - MITRE_TA0005_defense_evasion
+    - AWS_WAF
+    - AWS_WAF_SEC-1
+  source: aws_cloudtrail
+
+- rule: Delete Organization Config Rule
+  desc: Detect deletion of an organization config rule.
+  condition:
+    aws.eventName="DeleteOrganizationConfigRule" and not aws.errorCode exists
+  output:
+    An organization config rule has been deleted.
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     organization config rule name=%jevt.value[/requestParameters/organizationConfigRuleName])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_Config
+    - SOC2
+    - SOC2_CC7.2
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.12.1.2
+    - MITRE
+    - MITRE_T1562_impair_defenses
+    - MITRE_T1562.001_disable_or_modify_tools
+    - MITRE_TA0005_defense_evasion
+  source: aws_cloudtrail
+
+- rule: Delete Organization Conformance Pack
+  desc: Detect deletion of an organization conformance pack.
+  condition:
+    aws.eventName="DeleteOrganizationConformancePack" and not aws.errorCode exists
+  output:
+    An organization conformance pack has been deleted.
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     organization conformance pack name=%jevt.value[/requestParameters/organizationConformancePackName])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_Config
+    - SOC2
+    - SOC2_CC7.2
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.12.1.2
+    - MITRE
+    - MITRE_T1562_impair_defenses
+    - MITRE_T1562.001_disable_or_modify_tools
+    - MITRE_TA0005_defense_evasion
+  source: aws_cloudtrail
+
+- rule: Delete Remediation Configuration
+  desc: Detect deletion of a remediation configuration.
+  condition:
+    aws.eventName="DeleteRemediationConfiguration" and not aws.errorCode exists
+  output:
+    A remediation configuration has been deleted.
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     config rule name=%jevt.value[/requestParameters/configRuleName])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_Config
+    - SOC2
+    - SOC2_CC7.2
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.12.1.2
+    - MITRE
+    - MITRE_T1562_impair_defenses
+    - MITRE_T1562.001_disable_or_modify_tools
+    - MITRE_TA0005_defense_evasion
+  source: aws_cloudtrail
+
+- rule: Delete Retention Configuration
+  desc: Detect deletion of the retention configuration with details about retention period (number of days) that AWS Config stores historical information.
+  condition:
+    aws.eventName="DeleteRetentionConfiguration" and not aws.errorCode exists
+  output:
+    The retention configuration has been deleted.
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     retention configuration name=%jevt.value[/requestParameters/retentionConfigurationName])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_Config
+    - SOC2
+    - SOC2_CC7.2
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.12.1.2
+    - MITRE
+    - MITRE_T1562_impair_defenses
+    - MITRE_T1562.001_disable_or_modify_tools
+    - MITRE_TA0005_defense_evasion
+  source: aws_cloudtrail
+
+- rule: Put Config Rule
+  desc: Detect addition or update in an AWS Config rule.
+  condition:
+    aws.eventName="PutConfigRule" and not aws.errorCode exists
+  output:
+     An AWS Config rule for evaluating whether your AWS resources comply with your desired configurations has been created or updated.
+     (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     config rule id=%jevt.value[/requestParameters/configRule/configRuleId])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_Config
+    - MITRE
+    - MITRE_T1562_impair_defenses
+    - MITRE_T1562.001_disable_or_modify_tools
+    - MITRE_TA0005_defense_evasion
+  source: aws_cloudtrail
+
+- rule: Put Configuration Aggregator
+  desc: Detect creation and update of the configuration aggregator with the selected source accounts and regions.
+  condition:
+    aws.eventName="PutConfigurationAggregator" and not aws.errorCode exists
+  output:
+    A configuration aggregator has been created or updated.
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     configuration aggregator name=%jevt.value[/requestParameters/configurationAggregatorName])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_Config
+    - MITRE
+    - MITRE_T1562_impair_defenses
+    - MITRE_T1562.001_disable_or_modify_tools
+    - MITRE_TA0005_defense_evasion
+  source: aws_cloudtrail
+
+- rule: Put Conformance Pack
+  desc: Detect creation or update of a conformance pack.
+  condition:
+    aws.eventName="PutConformancePack" and not aws.errorCode exists
+  output:
+    A conformance pack has been created or updated.
+     (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     conformance pack name=%jevt.value[/requestParameters/conformancePackName])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_Config
+    - MITRE
+    - MITRE_T1562_impair_defenses
+    - MITRE_T1562.001_disable_or_modify_tools
+    - MITRE_TA0005_defense_evasion
+  source: aws_cloudtrail
+
+- rule: Put Delivery Channel
+  desc: Detect creation of a delivery channel.
+  condition:
+    aws.eventName="PutDeliveryChannel" and not aws.errorCode exists
+  output:
+     A delivery channel object to deliver configuration information to an Amazon S3 bucket and Amazon SNS topic has been created.
+     (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     delivery channel name=%jevt.value[/requestParameters/deliveryChannel/name])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_Config
+    - MITRE
+    - MITRE_T1562_impair_defenses
+    - MITRE_T1562.001_disable_or_modify_tools
+    - MITRE_TA0005_defense_evasion
+  source: aws_cloudtrail
+
+- rule: Put Organization Config Rule
+  desc: Detect addition or update in an AWS Organization Config rule.
+  condition:
+    aws.eventName="PutOrganizationConfigRule" and not aws.errorCode exists
+  output:
+     An organization config rule for your entire organization evaluating whether your AWS resources comply with your desired configurations has been created or updated.
+     (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     organization config rule name=%jevt.value[/requestParameters/organizationConfigRuleName])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_Config
+    - MITRE
+    - MITRE_T1562_impair_defenses
+    - MITRE_T1562.001_disable_or_modify_tools
+    - MITRE_TA0005_defense_evasion
+  source: aws_cloudtrail
+
+- rule: Put Organization Conformance Pack
+  desc: Detect deployment of conformance packs across member accounts in an AWS Organization.
+  condition:
+    aws.eventName="PutOrganizationConformancePack" and not aws.errorCode exists
+  output:
+    Conformance packs have been deployed across member accounts in an AWS Organization.
+     (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     organization conformance pack name=%jevt.value[/requestParameters/organizationConformancePackName])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_Config
+    - MITRE
+    - MITRE_T1562_impair_defenses
+    - MITRE_T1562.001_disable_or_modify_tools
+    - MITRE_TA0005_defense_evasion
+  source: aws_cloudtrail
+
+- rule: Put Remediation Configurations
+  desc: Detect addition or update of the remediation configuration with a specific AWS Config rule with the selected target or action.
+  condition:
+    aws.eventName="PutRemediationConfigurations" and not aws.errorCode exists
+  output:
+    A remediation configuration has been added or updated with a specific AWS Config rule with the selected target or action.
+     (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region)
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_Config
+    - MITRE
+    - MITRE_T1562_impair_defenses
+    - MITRE_T1562.001_disable_or_modify_tools
+    - MITRE_TA0005_defense_evasion
+  source: aws_cloudtrail
+
+- rule: Put Remediation Exceptions
+  desc: Detect addition of a new exception or updates an existing exception for a specific resource with a specific AWS Config rule.
+  condition:
+    aws.eventName="PutRemediationExceptions" and not aws.errorCode exists
+  output:
+    A new exception has been added or an existing exception has been updated for a specific resource with a specific AWS Config rule.
+     (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     config rule name=%jevt.value[/requestParameters/configRuleName])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_Config
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.12.1.2
+    - MITRE
+    - MITRE_T1562_impair_defenses
+    - MITRE_T1562.001_disable_or_modify_tools
+    - MITRE_TA0005_defense_evasion
+  source: aws_cloudtrail
+
+- rule: Put Retention Configuration
+  desc: Detect creation or update of the retention configuration with details about retention period (number of days) that AWS Config stores historical information.
+  condition:
+    aws.eventName="PutRetentionConfiguration" and not aws.errorCode exists
+  output:
+    The retention configuration has been created or updated.
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     retention period in days=%jevt.value[/requestParameters/retentionPeriodInDays])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_Config
+    - MITRE
+    - MITRE_T1562_impair_defenses
+    - MITRE_T1562.001_disable_or_modify_tools
+    - MITRE_TA0005_defense_evasion
+  source: aws_cloudtrail
+
+- rule: Stop Configuration Recorder
+  desc: Detect stoping the configuration recorder.
+  condition:
+    aws.eventName="StopConfigurationRecorder" and not aws.errorCode exists
+  output:
+    A configuration recorder has been stopped
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     recorder=%jevt.value[/requestParameters/configurationRecorderName])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_Config
+    - SOC2
+    - SOC2_CC3.2
+    - SOC2_CC7.2
+    - PCI
+    - PCI_DSS
+    - PCI_DSS_10.5.2
+    - PCI_DSS_11.5
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.12.1.2
+    - GDPR
+    - GDPR_5.2
+    - GDPR_24.1
+    - GDPR_24.2
+    - GDPR_24.3
+    - GDPR_25.1
+    - GDPR_25.2
+    - GDPR_25.3
+    - GDPR_30.1
+    - GDPR_30.2
+    - GDPR_30.3
+    - GDPR_30.4
+    - GDPR_30.5
+    - GDPR_32.1
+    - GDPR_32.2
+    - GDPR_40.2
+    - MITRE
+    - MITRE_T1562_impair_defenses
+    - MITRE_T1562.001_disable_or_modify_tools
+    - MITRE_TA0005_defense_evasion
+    - AWS_FSBP
+    - AWS_FSBP_config.1
+    - AWS_WAF
+    - AWS_WAF_SEC-1
+  source: aws_cloudtrail
+
+- rule: Console Login Failure
+  desc: Detect a console login failure
+  condition:
+    aws.eventName="ConsoleLogin"
+    and jevt.value[/responseElements/ConsoleLogin]="Failure"
+  output:
+    Detected a console login failure
+    (requesting IP=%aws.sourceIP,
+    AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+    userAgent=%jevt.value[/userAgent],
+    errorMessage=%jevt.value[/errorMessage])
+  priority: WARNING
+  tags:
+  - Cloud
+  - AWS
+  - AWS_IAM
+  source: aws_cloudtrail
+
+- rule: Console Login Success
+  desc: Detect a console login success
+  condition:
+    aws.eventName="ConsoleLogin"
+    and jevt.value[/responseElements/ConsoleLogin]="Success"
+  output:
+    Detected a console login success
+    (requesting user=%aws.user,
+    requesting IP=%aws.sourceIP,
+    AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+    user agent=%jevt.value[/userAgent])
+  priority: INFO
+  tags:
+  - Cloud
+  - AWS
+  - AWS_IAM
+  source: aws_cloudtrail
+
+- rule: Console Login Success From Untrusted IP
+  desc: Detect a console login success from an untrusted IP address
+  condition:
+    aws.eventName="ConsoleLogin"
+    and jevt.value[/responseElements/ConsoleLogin]="Success"
+    and not aws.sourceIP in (trusted_ip_addresses)
+  output:
+    Detected a console login success from an untrusted IP address
+    (requesting user=%aws.user,
+    requesting IP=%aws.sourceIP,
+    AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+    user agent=%jevt.value[/userAgent])
+  priority: INFO
+  tags:
+  - Cloud
+  - AWS
+  - AWS_IAM
+  source: aws_cloudtrail
+
+- rule: Console Login Through Assume Role
+  desc: Detect a console login through Assume Role.
+  condition:
+    aws.eventName="ConsoleLogin" and not aws.errorCode exists
+    and jevt.value[/userIdentity/type]="AssumedRole"
+    and jevt.value[/responseElements/ConsoleLogin]="Success"
+  output:
+    Detected a console login through Assume Role
+    (principal=%jevt.value[/userIdentity/principalId],
+    assumedRole=%jevt.value[/userIdentity/arn],
+    requesting IP=%aws.sourceIP,
+    AWS region=%aws.region)
+  priority: WARNING
+  tags:
+  - Cloud
+  - AWS
+  - AWS_Console
+  - AWS_IAM
+  source: aws_cloudtrail
+
+- rule: Console Login Without MFA
+  desc: Detect a console login without MFA.
+  condition:
+    aws.eventName="ConsoleLogin" and not aws.errorCode exists
+    and jevt.value[/userIdentity/type]!="AssumedRole"
+    and jevt.value[/responseElements/ConsoleLogin]="Success"
+    and jevt.value[/additionalEventData/MFAUsed]="No"
+  output:
+    Detected a console login without MFA
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region)
+  priority: CRITICAL
+  tags:
+    - Cloud
+    - AWS
+    - AWS_Console
+    - AWS_IAM
+    - SOC2
+    - SOC2_CC5.2
+    - NIST
+    - NIST_800-171
+    - NIST_800-171_3.1.1
+    - NIST_800-171_3.1.2
+    - NIST_800-53
+    - NIST_800-53_AC-2
+    - FedRAMP
+    - FedRAMP_AC-2
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.9.4.2
+    - HIPAA
+    - HIPAA_164.308(a)
+    - HIPAA_164.312(a)
+    - GDPR
+    - GDPR_25.1
+    - GDPR_25.2
+    - GDPR_25.3
+    - AWS_WAF
+    - AWS_WAF_SEC-1
+  source: aws_cloudtrail
+
+- rule: Console Root Login Without MFA
+  desc: Detect root console login without MFA.
+  condition:
+    aws.eventName="ConsoleLogin" and not aws.errorCode exists
+    and jevt.value[/additionalEventData/MFAUsed]="No"
+    and jevt.value[/userIdentity/type]!="AssumedRole"
+    and jevt.value[/responseElements/ConsoleLogin]="Success"
+    and jevt.value[/userIdentity/type]="Root"
+  output:
+    Detected a root console login without MFA.
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region)
+  priority: CRITICAL
+  tags:
+    - Cloud
+    - AWS
+    - AWS_Console
+    - AWS_IAM
+    - SOC2
+    - SOC2_CC5.2
+    - SOC2_CC6.2
+    - SOC2_CC6.6
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.9.2.3
+    - MITRE
+    - MITRE_T1531_accout_access_removal
+    - MITRE_TA0040_impact
+    - AWS_WAF
+    - AWS_WAF_SEC-1
+  source: aws_cloudtrail
+
+- rule: Create Public DMS Replication Instance
+  desc: Detect creation of a public DMS replication instance.
+  condition:
+    aws.eventName="CreateReplicationInstance" and not aws.errorCode exists
+    and jevt.value[/requestParameters/publiclyAccessible]="true"
+  output:
+    A new public DMS replication instance has been created
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     new DMS replication instance created name=%jevt.value[/responseElements/replicationInstance/replicationInstanceIdentifier],
+     new DMS replication instance created arn=%jevt.value[/responseElements/replicationInstance/replicationInstanceArn])
+  priority: CRITICAL
+  tags:
+    - Cloud
+    - AWS
+    - AWS_DMS
+    - SOC2
+    - SOC2_CC8.1
+    - PCI
+    - PCI_DSS
+    - PCI_DSS_1.2.1
+    - PCI_DSS_1.3.1
+    - PCI_DSS_1.3.2
+    - PCI_DSS_1.3.4
+    - PCI_DSS_1.3.6
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.13.1.1
+    - AWS_FSBP
+    - AWS_FSBP_dms.1
+    - AWS_WAF
+    - AWS_WAF_SEC-8
+    - AWS_WAF_REL-9
+  source: aws_cloudtrail
+
+- rule: EBS Volume Creation without Encryption at Rest
+  desc: Detect creation of an EBS volume without encryption at rest enabled.
+  condition:
+    aws.eventName="CreateVolume" and not aws.errorCode exists
+    and jevt.value[/requestParameters/encrypted]=false
+  output:
+    An EBS volume has been created without encryption at rest enabled
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     volume Id=%jevt.value[/responseElements/volumeId])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_EBS
+    - SOC2
+    - SOC2_CC6.1
+    - SOC2_CC8.1
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.10.1.1
+    - ISO_27001_A.18.1.5
+    - GDPR
+    - GDPR_32.1
+    - GDPR_32.2
+    - CIS
+    - CIS_AWS
+    - CIS_AWS-1.3.0
+    - CIS_AWS-1.3.0_2.2.1
+    - AWS_FSBP
+    - AWS_FSBP_ec2.3
+    - AWS_WAF
+    - AWS_WAF_SEC-8
+  source: aws_cloudtrail
+
+- rule: Allocate New Elastic IP Address to AWS Account
+  desc: Detect that a public IP address has been allocated to the account.
+  condition:
+    aws.eventName="AllocateAddress" and not aws.errorCode exists
+  output:
+    A public IP address has been allocated to the account
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+    public IP allocated=%jevt.value[/responseElements/publicIp])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_EC2
+    - SOC2
+    - SOC2_CC7.2
+    - NIST
+    - NIST_800-171
+    - NIST_800-171_3.1.3
+    - NIST_800-53
+    - NIST_800-53_AC-4
+    - HIPAA
+    - HIPAA_164.308(a)
+    - HIPAA_164.310(b)
+    - AWS_WAF
+    - AWS_WAF_REL-2
+    - AWS_WAF_REL-10
+  source: aws_cloudtrail
+
+- rule: Associate Elastic IP Address to AWS Network Interface
+  desc: Detect that a public IP address has been associated with a network interface.
+  condition:
+    aws.eventName="AssociateAddress" and not aws.errorCode exists
+  output:
+    A public IP address has been associated with a network interface
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+    private IP exposed=%jevt.value[/requestParameters/privateIpAddress])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_EC2
+    - SOC2
+    - SOC2_CC7.2
+    - NIST
+    - NIST_800-171
+    - NIST_800-171_3.1.3
+    - NIST_800-53
+    - NIST_800-53_AC-4
+    - HIPAA
+    - HIPAA_164.308(a)
+    - HIPAA_164.310(b)
+    - AWS_WAF
+    - AWS_WAF_REL-2
+    - AWS_WAF_REL-10
+  source: aws_cloudtrail
+
+- rule: Authorize Security Group Egress
+  desc: Detect addition of the specified egress rules to a security group.
+  condition:
+    aws.eventName="AuthorizeSecurityGroupEgress" and not aws.errorCode exists
+  output:
+    New egress rules have been added to a security group.
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     group id=%jevt.value[/requestParameters/groupId])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_EC2
+    - SOC2
+    - SOC2_CC7.2
+    - MITRE
+    - MITRE_T1562_impair_defenses
+    - MITRE_T1562.001_disable_or_modify_tools
+    - MITRE_TA0003_persistence
+    - MITRE_TA0005_defense_evasion
+    - AWS_WAF
+    - AWS_WAF_SEC-8
+    - AWS_WAF_REL-10
+  source: aws_cloudtrail
+
+- rule: Authorize Security Group Ingress
+  desc: Detect addition of the specified ingress rules to a security group.
+  condition:
+    aws.eventName="AuthorizeSecurityGroupIngress" and not aws.errorCode exists
+  output:
+    New ingress rules have been added to a security group.
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     group id=%jevt.value[/requestParameters/groupId])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_EC2
+    - SOC2
+    - SOC2_CC7.2
+    - MITRE
+    - MITRE_T1562_impair_defenses
+    - MITRE_T1562.001_disable_or_modify_tools
+    - MITRE_TA0003_persistence
+    - MITRE_TA0005_defense_evasion
+    - AWS_WAF
+    - AWS_WAF_SEC-8
+    - AWS_WAF_REL-10
+  source: aws_cloudtrail
+
+- rule: Create Snapshot
+  desc: Detect creation of an EBS volume snapshot and stores it in Amazon S3.
+  condition:
+    aws.eventName="CreateSnapshot" and not aws.errorCode exists
+  output:
+    An EBS volume snapshot has been created.
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     volume id=%jevt.value[/requestParameters/volumeId],
+     snapshot id=%jevt.value[/responseElements/snapshotId])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_EC2
+    - AWS_WAF
+    - AWS_WAF_REL-9
+  source: aws_cloudtrail
+
+- rule: Delete Subnet
+  desc: Detect deletion of the specified subnet.
+  condition:
+    aws.eventName="DeleteSubnet" and not aws.errorCode exists
+  output:
+    A subnet has been deleted.
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     subnet id=%jevt.value[/requestParameters/subnetId])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_EC2
+    - MITRE
+    - MITRE_T1485_data_destruction
+    - MITRE_TA0040_impact
+  source: aws_cloudtrail
+
+- rule: Describe Instances
+  desc: Detect description of the specified EC2 instances or all EC2 instances.
+  condition:
+    aws.eventName="DescribeInstances" and not aws.errorCode exists
+  exceptions:
+  - name: user_region
+    fields: [aws.user, aws.region]
+  output:
+    A description of an EC2 instance has been requested.
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region)
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_EC2
+  source: aws_cloudtrail
+
+- rule: Disable EBS Encryption by Default
+  desc: Detect disabling EBS encryption by default for an account in the current region.
+  condition:
+    aws.eventName="DisableEbsEncryptionByDefault" and not aws.errorCode exists
+  output:
+    EBS encryption by default for an account in the current region has been disabled.
+    (requesting user=%aws.user,
+    requesting IP=%aws.sourceIP,
+     AWS region=%aws.region)
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_EC2
+    - SOC2
+    - SOC2_CC6.1
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.10.1.1
+    - ISO_27001_A.18.1.5
+    - GDPR
+    - GDPR_32.1
+    - GDPR_32.2
+    - MITRE
+    - MITRE_T1565_data_manipulation
+    - MITRE_T1565.001_stored_data_manipulation
+    - MITRE_TA0040_impact
+    - AWS_FSBP
+    - AWS_FSBP_ec2.7
+    - AWS_WAF
+    - AWS_WAF_SEC-8
+  source: aws_cloudtrail
+
+- rule: Make EBS Snapshot Public
+  desc: Detect making public an EBS snapshot.
+  condition:
+    aws.eventName="ModifySnapshotAttribute"
+    and not aws.errorCode exists
+    and jevt.value[/requestParameters/createVolumePermission/add/items/0/group]="all"
+  output:
+    An EBS snapshot has been made public
+    (requesting user=%aws.user,
+    requesting IP=%aws.sourceIP,
+    AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+    EBS snapshot=%jevt.value[/requestParameters/snapshotId])
+  priority: CRITICAL
+  tags:
+    - Cloud
+    - AWS
+    - AWS_EC2
+    - SOC2
+    - SOC2_CC7.2
+    - SOC2_CC8.1
+    - PCI
+    - PCI_DSS
+    - PCI_DSS_1.2.1
+    - PCI_DSS_1.3.1
+    - PCI_DSS_1.3.4
+    - PCI_DSS_7.2.1
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.13.1.1
+    - AWS_FSBP
+    - AWS_FSBP_ec2.1
+    - AWS_WAF
+    - AWS_WAF_SEC-8
+    - AWS_WAF_REL-9
+  source: aws_cloudtrail
+
+- rule: EC2 Serial Console Access Enabled
+  desc: Detect EC2 serial Console Acess enabled in the account for a specific region.
+  condition:
+    aws.eventName="EnableSerialConsoleAccess"
+    and not aws.errorCode exists
+    and jevt.value[/responseElements/EnableSerialConsoleAccessResponse/serialConsoleAccessEnabled]=true
+  output:
+    The EC2 serial Console Access has been enabled.
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region)
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_EC2
+  source: aws_cloudtrail
+
+- rule: Get Password Data
+  desc: Detect retrieval of the encrypted administrator password for a running Windows instance.
+  condition:
+    aws.eventName="GetPasswordData" and not aws.errorCode exists
+  output:
+    The encrypted administrator password for a running Windows instance has been retrieved.
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     instance id=%jevt.value[/requestParameters/instanceId])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_EC2
+    - SOC2
+    - SOC2_CC8.1
+    - MITRE
+    - MITRE_TA0003_persistence
+    - AWS_WAF
+    - AWS_WAF_SEC-1
+  source: aws_cloudtrail
+
+- rule: Modify Image Attribute
+  desc: Detect modification of the specified attribute of the specified AMI.
+  condition:
+    aws.eventName="ModifyImageAttribute" and not aws.errorCode exists
+  output:
+    An attribute of the specified AMI has been modified.
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     image id=%jevt.value[/requestParameters/imageId])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_EC2
+    - MITRE
+    - MITRE_TA0010_exfiltration
+    - AWS_WAF
+    - AWS_WAF_REL-9
+  source: aws_cloudtrail
+
+- rule: Modify Snapshot Attribute
+  desc: Detect addition or removal of permission settings for the specified EC2 snapshot.
+  condition:
+    aws.eventName="ModifySnapshotAttribute" and not aws.errorCode exists
+  output:
+    A permission setting for an EC2 snapshot has been added or removed.
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     snapshot id=%jevt.value[/requestParameters/snapshotId],
+     attribute type=%jevt.value[/requestParameters/attributeType])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_EC2
+    - MITRE
+    - MITRE_T1537_transfer_data_to_cloud_account
+    - MITRE_TA0010_exfiltration
+    - AWS_WAF
+    - AWS_WAF_REL-9
+  source: aws_cloudtrail
+
+- rule: Replace Route
+  desc: Detect replacing an existing route within a route table in a VPC.
+  condition:
+    aws.eventName="ReplaceRoute" and not aws.errorCode exists
+  output:
+    An existing route within a route table in a VPC has been replaced.
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     route table id=%jevt.value[/requestParameters/routeTableId])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_EC2
+    - MITRE
+    - MITRE_T1562_impair_defenses
+    - MITRE_T1562.001_disable_or_modify_tools
+    - MITRE_TA0003_persistence
+    - MITRE_TA0005_defense_evasion
+  source: aws_cloudtrail
+
+- rule: Revoke Security Group Egress
+  desc: Detect removal of the specified egress rules from a security group.
+  condition:
+    aws.eventName="RevokeSecurityGroupEgress" and not aws.errorCode exists
+  output:
+    Existing egress rules have been removed from a security group.
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     group id=%jevt.value[/requestParameters/groupId])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_EC2
+    - SOC2
+    - SOC2_CC7.2
+    - MITRE
+    - MITRE_T1562_impair_defenses
+    - MITRE_T1562.001_disable_or_modify_tools
+    - MITRE_TA0003_persistence
+    - MITRE_TA0005_defense_evasion
+    - AWS_WAF
+    - AWS_WAF_SEC-8
+    - AWS_WAF_REL-10
+  source: aws_cloudtrail
+
+- rule: Revoke Security Group Ingress
+  desc: Detect removal of the specified ingress rules from a security group.
+  condition:
+    aws.eventName="RevokeSecurityGroupIngress" and not aws.errorCode exists
+  output:
+    Existing ingress rules have been removed from a security group.
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     group id=%jevt.value[/requestParameters/groupId])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_EC2
+    - SOC2
+    - SOC2_CC7.2
+    - MITRE
+    - MITRE_T1562_impair_defenses
+    - MITRE_T1562.001_disable_or_modify_tools
+    - MITRE_TA0003_persistence
+    - MITRE_TA0005_defense_evasion
+    - AWS_WAF
+    - AWS_WAF_SEC-8
+    - AWS_WAF_REL-10
+  source: aws_cloudtrail
+
+- rule: Run Instances
+  desc: Detect launching of a specified number of instances.
+  condition:
+    aws.eventName="RunInstances" and not aws.errorCode exists
+  output:
+    A number of instances have been launched.
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     availability zone=%jevt.value[/requestParameters/availabilityZone],
+     subnet id=%jevt.value[/requestParameters/subnetId],
+     reservation id=%jevt.value[/responseElements/reservationId])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_EC2
+  source: aws_cloudtrail
+
+- rule: Run Instances in Non-approved Region
+  desc: Detect launching of a specified number of instances in a non-approved region.
+  condition:
+    aws.eventName="RunInstances" and not aws.errorCode exists and
+    not aws.region in (approved_regions)
+  output:
+    A number of instances have been launched in a non-approved region.
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     availability zone=%jevt.value[/requestParameters/availabilityZone],
+     subnet id=%jevt.value[/requestParameters/subnetId],
+     reservation id=%jevt.value[/responseElements/reservationId],
+     image id=%aws.ec2.imageId)
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_EC2
+    - SOC2
+    - SOC2_CC6.6
+    - SOC2_CC7.2
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.12.1.2
+    - AWS_WAF
+    - AWS_WAF_SEC-1
+  source: aws_cloudtrail
+
+- rule: Run Instances with Non-standard Image
+  desc: Detect launching of a specified number of instances with a non-standard image.
+  condition:
+    aws.eventName="RunInstances" and not aws.errorCode exists and
+    not aws.ec2.imageId in (approved_image_ids)
+  output:
+    A number of instances with a non-standard image have been launched.
+    (requesting user=%aws.user,
+    requesting IP=%aws.sourceIP,
+    AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+    availability zone=%jevt.value[/requestParameters/availabilityZone],
+    subnet id=%jevt.value[/requestParameters/subnetId],
+    reservation id=%jevt.value[/responseElements/reservationId],
+    image id=%aws.ec2.imageId)
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_EC2
+    - SOC2
+    - SOC2_CC6.6
+    - SOC2_CC7.2
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.12.1.2
+    - AWS_WAF
+    - AWS_WAF_SEC-1
+  source: aws_cloudtrail
+
+- rule: ECR Image Pushed
+  desc: Detect a new image has been pushed to an ECR registry
+  condition:
+    aws.eventSource="ecr.amazonaws.com" and
+    aws.eventName="PutImage" and
+    not aws.errorCode exists
+  output:
+    An image has been pushed to ECR registry
+    (region=%aws.region,
+    account=%aws.accountId,
+    repository=%aws.ecr.repository,
+    tag=%aws.ecr.image.tag)
+    (requesting user=%aws.user,
+    requesting IP=%aws.sourceIP,
+    AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+    repository=%aws.ecr.repository,
+    tag=%aws.ecr.image.tag)
+  priority: NOTICE
+  tags:
+    - Cloud
+    - AWS
+    - AWS_ECR
+  source: aws_cloudtrail
+
+- rule: ECS Service Created
+  desc: Detect a new service is created in ECS.
+  condition:
+    aws.eventSource="ecs.amazonaws.com" and
+    aws.eventName="CreateService" and
+    not aws.errorCode exists
+  output:
+    A new service has been created in ECS
+    (requesting user=%aws.user,
+    requesting IP=%aws.sourceIP,
+    AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+    cluster=%jevt.value[/requestParameters/cluster],
+    service name=%jevt.value[/requestParameters/serviceName],
+    task definition=%aws.ecs.taskDefinition)
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_ECS
+    - AWS_Fargate
+  source: aws_cloudtrail
+
+- rule: Delete Cluster
+  desc: Detect deletion of the specified cluster.
+  condition:
+    aws.eventName="DeleteCluster" and not aws.errorCode exists
+  output:
+    A cluster has been deleted.
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     cluster=%jevt.value[/requestParameters/cluster])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_ECS
+    - SOC2
+    - SOC2_CC7.2
+    - MITRE
+    - MITRE_T1485_data_destruction
+    - MITRE_TA0040_impact
+  source: aws_cloudtrail
+
+- rule: ECS Service Deleted
+  desc: Detect a service is deleted in ECS.
+  condition:
+    aws.eventSource="ecs.amazonaws.com" and
+    aws.eventName="DeleteService" and
+    not aws.errorCode exists
+  output:
+    A service has been deleted in ECS
+    (requesting user=%aws.user,
+    requesting IP=%aws.sourceIP,
+    AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+    cluster=%jevt.value[/requestParameters/cluster],
+    service name=%jevt.value[/requestParameters/service])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_ECS
+    - AWS_Fargate
+  source: aws_cloudtrail
+
+- rule: Execute Command inside an ECS Container
+  desc: Detect execution of a command inside an ECS container.
+  condition:
+    aws.eventSource="ecs.amazonaws.com" and
+    aws.eventName="ExecuteCommand" and
+    jevt.value[/requestParameters/interactive]=false and
+    not aws.errorCode exists
+  output:
+    A command has been executed inside an ECS container
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     cluster=%jevt.value[/requestParameters/cluster],
+     container=%jevt.value[/requestParameters/container],
+     command=%jevt.value[/requestParameters/command],
+     interactive=%jevt.value[/requestParameters/interactive],
+     task=%jevt.value[/requestParameters/task])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_ECS
+    - AWS_ECS_Exec
+    - AWS_Fargate
+    - SOC2
+    - SOC2_CC6.1
+    - NIST
+    - NIST_800-190
+    - NIST_800-190_3.4.2
+    - NIST_800-190_3.4.4
+    - NIST_800-53
+    - NIST_800-53_AC-2
+    - NIST_800-53_AC-17
+    - NIST_800-53_AU-2
+    - NIST_800-53_AU-6(8)
+    - NIST_800-53_SI-4
+    - MITRE
+    - MITRE_TA0002_execution
+  source: aws_cloudtrail
+
+- rule: Execute Interactive Command inside an ECS Container
+  desc: Detect execution of an interactive command inside an ECS container.
+  condition:
+    aws.eventSource="ecs.amazonaws.com" and
+    aws.eventName="ExecuteCommand" and
+    not jevt.value[/requestParameters/command] in (system_shells) and
+    jevt.value[/requestParameters/interactive]=true and
+    not aws.errorCode exists
+  output:
+    An interactive command has been executed inside an ECS container
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     cluster=%jevt.value[/requestParameters/cluster],
+     container=%jevt.value[/requestParameters/container],
+     command=%jevt.value[/requestParameters/command],
+     interactive=%jevt.value[/requestParameters/interactive],
+     task=%jevt.value[/requestParameters/task])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_ECS
+    - AWS_ECS_Exec
+    - AWS_Fargate
+    - SOC2
+    - SOC2_CC6.1
+    - NIST
+    - NIST_800-53
+    - NIST_800-53_AC-2
+    - NIST_800-53_AC-6
+    - NIST_800-53_AC-17
+    - NIST_800-53_AU-2
+    - NIST_800-53_AU-6(8)
+    - NIST_800-53_SI-3
+    - NIST_800-53_SI-4
+    - NIST_800-53_SI-4(2)
+    - NIST_800-53_SI-4(24)
+    - NIST_800-53_SI-7(11)
+    - MITRE
+    - MITRE_T1059_command_and_scripting_interpreter
+    - MITRE_TA0002_execution
+  source: aws_cloudtrail
+
+- rule: ECS Task Run or Started
+  desc: Detect a new task is started in ECS.
+  condition:
+    aws.eventSource="ecs.amazonaws.com" and
+    (aws.eventName="RunTask" or aws.eventName="StartTask") and
+    not aws.errorCode exists
+  output:
+    A new task has been started in ECS
+    (requesting user=%aws.user,
+    requesting IP=%aws.sourceIP,
+    AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+    cluster=%jevt.value[/requestParameters/cluster],
+    task definition=%aws.ecs.taskDefinition)
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_ECS
+    - AWS_Fargate
+  source: aws_cloudtrail
+
+- rule: ECS Task Stopped
+  desc: Detect a task is stopped in ECS.
+  condition:
+    aws.eventSource="ecs.amazonaws.com" and
+    aws.eventName="StopTask" and
+    not aws.errorCode exists
+  output:
+    A task has been stopped in ECS
+    (requesting user=%aws.user,
+    requesting IP=%aws.sourceIP,
+    AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+    cluster=%jevt.value[/requestParameters/cluster],
+    task=%jevt.value[/requestParameters/task],
+    reason=%jevt.value[/responseElements/task/stoppedReason])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_ECS
+    - AWS_Fargate
+  source: aws_cloudtrail
+
+- rule: Terminal Shell in ECS Container
+  desc: A terminal shell has been executed inside an ECS container.
+  condition:
+    aws.eventSource="ecs.amazonaws.com" and
+    aws.eventName="ExecuteCommand" and
+    jevt.value[/requestParameters/command] in (system_shells) and
+    jevt.value[/requestParameters/interactive]=true and
+    not aws.errorCode exists
+  output:
+    An interactive terminal shell has been executed inside an ECS container
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     cluster=%jevt.value[/requestParameters/cluster],
+     container=%jevt.value[/requestParameters/container],
+     command=%jevt.value[/requestParameters/command],
+     task=%jevt.value[/requestParameters/task])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_ECS
+    - AWS_ECS_Exec
+    - AWS_Fargate
+    - SOC2
+    - SOC2_CC6.1
+    - PCI
+    - PCI_DSS
+    - PCI_DSS_10.1
+    - PCI_DSS_10.2.1
+    - NIST
+    - NIST_800-53
+    - NIST_800-53_AC-2(4)
+    - NIST_800-53_AC-17
+    - NIST_800-53_AU-2
+    - NIST_800-53_AU-6(8)
+    - MITRE
+    - MITRE_T1059_command_and_scripting_interpreter
+    - MITRE_T1059.004_unix_shell
+    - MITRE_TA0002_execution
+  source: aws_cloudtrail
+
+- rule: ECS Service Task Definition Updated
+  desc: Detect a service task definition is updated in ECS.
+  condition:
+    aws.eventSource="ecs.amazonaws.com" and
+    aws.eventName="UpdateService" and
+    jevt.value[/requestParameters/taskDefinition] exists and
+    not aws.errorCode exists
+  output:
+    A service task definition has been updated in ECS
+    (requesting user=%aws.user,
+    requesting IP=%aws.sourceIP,
+    AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+    cluster=%jevt.value[/requestParameters/cluster],
+    service name=%jevt.value[/requestParameters/service],
+    task definition=%jevt.value[/requestParameters/taskDefinition])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_ECS
+    - AWS_Fargate
+  source: aws_cloudtrail
+
+# THE FOLLOWING RULE CAN'T BE TRIGGERED AS PER 2020-10-23
+# BECAUSE THE PARAMETER encrypted IS ALWAYS true BY DEFAULT
+- rule: Create Unencrypted EFS
+  desc: Detect creation of an unencrypted elastic file system.
+  condition:
+    aws.eventName="CreateFileSystem" and not aws.errorCode exists and
+    jevt.value[/requestParameters/encrypted] = false
+  output:
+    An unencrypted EFS has been created
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     file system arn=%jevt.value[/responseElements/fileSystemArn])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_EFS
+    - SOC2
+    - SOC2_CC6.1
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.10.1.1
+    - ISO_27001_A.18.1.5
+    - GDPR
+    - GDPR_32.1
+    - GDPR_32.2
+    - AWS_WAF
+    - AWS_WAF_SEC-8
+  source: aws_cloudtrail
+
+- rule: Elasticsearch Domain Creation without Encryption at Rest
+  desc: Detect creation of an Elasticsearch domain without encryption at rest enabled.
+  condition:
+    aws.eventName="CreateElasticsearchDomain" and not aws.errorCode exists
+    and jevt.value[/requestParameters/encryptionAtRestOptions/enabled]=false
+  output:
+    An Elasticsearch domain has been created without encryption at rest enabled
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     domain name=%jevt.value[/requestParameters/domainName])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_Elasticsearch
+    - SOC2
+    - SOC2_CC6.1
+    - PCI
+    - PCI_DSS
+    - PCI_DSS_3.4
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.10.1.1
+    - ISO_27001_A.18.1.5
+    - GDPR
+    - GDPR_32.1
+    - GDPR_32.2
+    - AWS_FSBP
+    - AWS_FSBP_es.1
+    - AWS_WAF
+    - AWS_WAF_SEC-8
+  source: aws_cloudtrail
+
+- rule: Elasticsearch Domain Creation without VPC
+  desc: Detect creation of an Elasticsearch domain without a VPC.
+  condition:
+    aws.eventName="CreateElasticsearchDomain" and not aws.errorCode exists
+    and not jevt.value[/requestParameters/vPCOptions] exists
+  output:
+    An Elasticsearch domain has been created without an associated VPC
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     domain name=%jevt.value[/requestParameters/domainName])
+  priority: CRITICAL
+  tags:
+    - Cloud
+    - AWS
+    - AWS_Elasticsearch
+    - SOC2
+    - SOC2_CC7.1
+    - PCI
+    - PCI_DSS
+    - PCI_DSS_1.2.1
+    - PCI_DSS_1.3.1
+    - PCI_DSS_1.3.2
+    - PCI_DSS_1.3.4
+    - PCI_DSS_1.3.5
+    - PCI_DSS_1.3.6
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.9.1.2
+    - AWS_WAF
+    - AWS_WAF_SEC-1
+  source: aws_cloudtrail
+
+- rule: Create HTTP Target Group without SSL
+  desc: Detect creation of HTTP target group not using SSL.
+  condition:
+    aws.eventName="CreateTargetGroup" and not aws.errorCode exists and
+    jevt.value[/requestParameters/protocol]="HTTP"
+  output:
+    A target group with HTTP not using SSL has been created
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     vpc ID=%jevt.value[/requestParameters/vpcId])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_ELB
+    - SOC2
+    - SOC2_CC6.1
+    - NIST
+    - NIST_800-53
+    - NIST_800-53_SC-8(1)
+    - FedRAMP
+    - FedRAMP_SC-8(1)
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.10.1.1
+    - ISO_27001_A.14.1.2
+    - ISO_27001_A.18.1.5
+    - HIPAA
+    - HIPAA_164.312(c)
+    - HIPAA_164.312(e)
+    - HITRUST
+    - HITRUST_CSF
+    - HITRUST_CSF_05.i
+    - HITRUST_CSF_09.m
+    - HITRUST_CSF_09.v
+    - HITRUST_CSF_09.x
+    - GDPR
+    - GDPR_32.1
+    - GDPR_32.2
+    - AWS_WAF
+    - AWS_WAF_SEC-9
+  source: aws_cloudtrail
+
+- rule: Create Internet-facing AWS Public Facing Load Balancer
+  desc: Detect creation of an AWS internet-facing load balancer.
+  condition:
+    aws.eventName="CreateLoadBalancer" and not aws.errorCode exists and
+    jevt.value[/requestParameters/scheme]="internet-facing"
+  output:
+    A public facing load balancer has been created
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     load balancer dnsName=%jevt.value[/responseElements/loadBalancers[0]/dNSName])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_ELB
+    - SOC2
+    - SOC2_CC6.1
+    - NIST
+    - NIST_800-171
+    - NIST_800-171_3.1.3
+    - NIST_800-53
+    - NIST_800-53_AC-4
+    - HIPAA
+    - HIPAA_164.308(a)
+    - HIPAA_164.310(b)
+    - GDPR
+    - GDPR_32.1
+    - GDPR_32.2
+    - AWS_WAF
+    - AWS_WAF_SEC-9
+    - AWS_WAF_REL-10
+  source: aws_cloudtrail
+
+- rule: Delete Listener
+  desc: Detect deletion of the specified listener.
+  condition:
+    aws.eventName="DeleteListener" and not aws.errorCode exists
+  output:
+    A listener has been deleted.
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     listener arn=%jevt.value[/requestParameters/listenerArn])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_ELB
+    - MITRE
+    - MITRE_T1190_exploit_public_facing_application
+    - MITRE_TA0001_initial_access
+  source: aws_cloudtrail
+
+- rule: Modify Listener
+  desc: Detect replacing the specified properties of the specified listener.
+  condition:
+    aws.eventName="ModifyListener" and not aws.errorCode exists
+  output:
+    The specified properties of the specified listener have been replaced.
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     listener arn=%jevt.value[/requestParameters/listenerArn])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_ELB
+    - MITRE
+    - MITRE_T1190_exploit_public_facing_application
+    - MITRE_TA0001_initial_access
+  source: aws_cloudtrail
+
+- rule: Delete Detector
+  desc: Detect deletion of an Amazon GuardDuty detector.
+  condition:
+    aws.eventName="DeleteDetector" and not aws.errorCode exists
+  output:
+    An Amazon GuardDuty detector has been deleted
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     deleted detector id=%jevt.value[/requestParameters/detectorId])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_GuardDuty
+    - SOC2
+    - SOC2_CC3.2
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.12.1.2
+    - GDPR
+    - GDPR_5.2
+    - GDPR_24.1
+    - GDPR_24.2
+    - GDPR_24.3
+    - GDPR_25.1
+    - GDPR_25.2
+    - GDPR_25.3
+    - GDPR_32.1
+    - GDPR_32.2
+    - GDPR_40.2
+    - MITRE
+    - MITRE_T1562_impair_defenses
+    - MITRE_T1562.001_disable_or_modify_tools
+    - MITRE_TA0005_defense_evasion
+  source: aws_cloudtrail
+
+- rule: Guard Duty Delete Members
+  desc: Detect deletion of GuardDuty member accounts (to the current GuardDuty administrator account) specified by the account IDs.
+  condition:
+    aws.eventName="DeleteMembers" and not aws.errorCode exists
+    and aws.eventSource="guardduty.amazonaws.com"
+  output:
+    GuardDuty member accounts (to the current GuardDuty administrator account) specified by the account IDs have been deleted.
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     detector id=%jevt.value[/requestParameters/detectorId])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_GuardDuty
+    - SOC2
+    - SOC2_CC3.2
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.12.1.2
+    - GDPR
+    - GDPR_5.2
+    - GDPR_24.1
+    - GDPR_24.2
+    - GDPR_24.3
+    - GDPR_25.1
+    - GDPR_25.2
+    - GDPR_25.3
+    - GDPR_32.1
+    - GDPR_32.2
+    - GDPR_40.2
+    - MITRE
+    - MITRE_T1562_impair_defenses
+    - MITRE_T1562.001_disable_or_modify_tools
+    - MITRE_TA0005_defense_evasion
+    - AWS_WAF
+    - AWS_WAF_SEC-1
+  source: aws_cloudtrail
+
+- rule: Disable GuardDuty
+  desc: Detect disabling of GuardDuty.
+  condition:
+    aws.eventName="UpdateDetector" and not aws.errorCode exists and
+    jevt.value[/requestParameters/enable]=false
+  output:
+    GuardDuty has been disabled
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     disabled detector id=%jevt.value[/requestParameters/detectorId])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_GuardDuty
+    - SOC2
+    - SOC2_CC3.2
+    - SOC2_CC7.2
+    - PCI
+    - PCI_DSS
+    - PCI_DSS_11.4
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.12.1.2
+    - GDPR
+    - GDPR_5.2
+    - GDPR_24.1
+    - GDPR_24.2
+    - GDPR_24.3
+    - GDPR_25.1
+    - GDPR_25.2
+    - GDPR_25.3
+    - GDPR_32.1
+    - GDPR_32.2
+    - GDPR_40.2
+    - AWS_FSBP
+    - AWS_FSBP_guardduty.1
+    - AWS_WAF
+    - AWS_WAF_SEC-1
+  source: aws_cloudtrail
+
+- rule: Guard Duty Disassociate from Master Account
+  desc: Detect disassociation of the current GuardDuty member account from its administrator account.
+  condition:
+    aws.eventName="DisassociateFromMasterAccount" and not aws.errorCode exists
+    and aws.eventSource="guardduty.amazonaws.com"
+  output:
+    The current GuardDuty member account has been disassociated from its administrator account.
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     detector id=%jevt.value[/requestParameters/detectorId])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_GuardDuty
+    - SOC2
+    - SOC2_CC3.2
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.12.1.2
+    - GDPR
+    - GDPR_5.2
+    - GDPR_24.1
+    - GDPR_24.2
+    - GDPR_24.3
+    - GDPR_25.1
+    - GDPR_25.2
+    - GDPR_25.3
+    - GDPR_32.1
+    - GDPR_32.2
+    - GDPR_40.2
+    - MITRE
+    - MITRE_T1562_impair_defenses
+    - MITRE_T1562.001_disable_or_modify_tools
+    - MITRE_TA0005_defense_evasion
+    - AWS_WAF
+    - AWS_WAF_SEC-1
+  source: aws_cloudtrail
+
+- rule: Guard Duty Disassociate Members
+  desc: Detect disassociation of GuardDuty member accounts (to the current GuardDuty administrator account) specified by the account IDs.
+  condition:
+    aws.eventName="DisassociateMembers" and not aws.errorCode exists
+    and aws.eventSource="guardduty.amazonaws.com"
+  output:
+    GuardDuty member accounts have been disassociated from the current GuardDuty administrator account.
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     detector id=%jevt.value[/requestParameters/detectorId])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_GuardDuty
+    - SOC2
+    - SOC2_CC3.2
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.12.1.2
+    - GDPR
+    - GDPR_5.2
+    - GDPR_24.1
+    - GDPR_24.2
+    - GDPR_24.3
+    - GDPR_25.1
+    - GDPR_25.2
+    - GDPR_25.3
+    - GDPR_32.1
+    - GDPR_32.2
+    - GDPR_40.2
+    - MITRE
+    - MITRE_T1562_impair_defenses
+    - MITRE_T1562.001_disable_or_modify_tools
+    - MITRE_TA0005_defense_evasion
+    - AWS_WAF
+    - AWS_WAF_SEC-1
+  source: aws_cloudtrail
+
+- rule: Stop Monitoring Members
+  desc: Detect stopping GuardDuty monitoring for the specified member accounts.
+  condition:
+    aws.eventName="StopMonitoringMembers" and not aws.errorCode exists
+  output:
+    GuardDuty monitoring for the specified member accounts has been stopped.
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+    detector id=%jevt.value[/requestParameters/detectorId])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_GuardDuty
+    - SOC2
+    - SOC2_CC3.2
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.12.1.2
+    - GDPR
+    - GDPR_5.2
+    - GDPR_24.1
+    - GDPR_24.2
+    - GDPR_24.3
+    - GDPR_25.1
+    - GDPR_25.2
+    - GDPR_25.3
+    - GDPR_32.1
+    - GDPR_32.2
+    - GDPR_40.2
+    - MITRE
+    - MITRE_T1562_impair_defenses
+    - MITRE_T1562.001_disable_or_modify_tools
+    - MITRE_TA0005_defense_evasion
+    - AWS_WAF
+    - AWS_WAF_SEC-1
+  source: aws_cloudtrail
+
+- rule: Logged in without Using MFA
+  desc:
+    (DEPRECATED) Detect user login without using MFA (multi-factor authentication).
+    Use "Console Login Without MFA" instead.
+  condition:
+    not jevt.rawtime exists
+  output:
+    (DEPRECATED) Detected user login without using MFA (multi-factor authentication)
+    (requesting user=%aws.user,
+    requesting IP=%aws.sourceIP)
+  priority: CRITICAL
+  tags:
+  - Cloud
+  - AWS
+  - AWS_IAM
+  source: aws_cloudtrail
+
+- rule: Password Recovery Requested
+  desc: Detect AWS IAM password recovery requests.
+  condition:
+    aws.eventName="PasswordRecoveryRequested" and not aws.errorCode exists
+  output:
+    An AWS IAM password recovery request has been detected.
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     password recovery status=%jevt.value[/responseElements/PasswordRecoveryRequested])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_IAM
+    - MITRE
+    - MITRE_T1078_valid_accounts
+    - MITRE_TA0001_initial_access
+    - AWS_WAF
+    - AWS_WAF_SEC-1
+  source: aws_cloudtrail
+
+- rule: Put Inline Policy in Group to Allow Access to All Resources
+  desc: Detect putting an inline policy in a group that allows access to all resources.
+  condition: >
+    aws.eventName="PutGroupPolicy" and not aws.errorCode exists and
+    (jevt.value[/requestParameters/policyDocument] contains "\"Resource\": \"*\"" or
+    jevt.value[/requestParameters/policyDocument] contains "\"Resource\":\"*\"" ) and
+    (jevt.value[/requestParameters/policyDocument] contains "\"Effect\": \"Allow\"" or
+    jevt.value[/requestParameters/policyDocument] contains "\"Effect\":\"Allow\"" )
+  output:
+    An inline policy that allows access to all resources has been put in a group
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     policy=%jevt.value[/requestParameters/policyName],
+     group=%jevt.value[/requestParameters/groupName])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_IAM
+    - SOC2
+    - SOC2_CC6.6
+    - NIST
+    - NIST_800-53
+    - NIST_800-53_AC-2(12)
+    - FedRAMP
+    - FedRAMP_AC-2(12)
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.6.1.2
+    - HIPAA
+    - HIPAA_164.308(a)
+    - HIPAA_164.312(a)
+    - AWS_WAF
+    - AWS_WAF_SEC-3
+    - AWS_WAF_REL-10
+  source: aws_cloudtrail
+
+- rule: Create Access Key for Root User
+  desc: Detect creation of an access key for root.
+  condition:
+    aws.eventName="CreateAccessKey" and not aws.errorCode exists
+    and jevt.value[/userIdentity/type]="Root"
+    and not jevt.value[/requestParameters/userName] exists
+  output:
+    A new access key for root user has been created
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     new access key=%jevt.value[/responseElements/accessKey/accessKeyId])
+  priority: CRITICAL
+  tags:
+    - Cloud
+    - AWS
+    - AWS_IAM
+    - SOC2
+    - SOC2_CC6.2
+    - SOC2_CC6.6
+    - PCI
+    - PCI_DSS
+    - PCI_DSS_2.1
+    - PCI_DSS_2.2
+    - PCI_DSS_7.2.1
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.9.2.3
+    - ISO_27001_A.10.1.2
+    - GDPR
+    - GDPR_25.1
+    - GDPR_25.2
+    - GDPR_25.3
+    - MITRE
+    - MITRE_T1078_valid_accounts
+    - MITRE_TA0001_initial_access
+    - CIS
+    - CIS_AWS
+    - CIS_AWS-1.3.0
+    - CIS_AWS-1.3.0_1.4
+    - AWS_FSBP
+    - AWS_FSBP_iam.4
+    - AWS_WAF
+    - AWS_WAF_SEC-1
+  source: aws_cloudtrail
+
+- rule: Deactivate Hardware MFA for Root User
+  desc: Detect deactivating hardware MFA configuration for root.
+  condition:
+    aws.eventName="DeactivateMFADevice" and not aws.errorCode exists
+    and jevt.value[/userIdentity/type]="Root"
+    and jevt.value[/requestParameters/userName]="AWS ROOT USER"
+    and jevt.value[/requestParameters/serialNumber] contains ":u2f/"
+  output:
+    Hardware Multi Factor Authentication configuration has been disabled for root
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     MFA serial number=%jevt.value[/requestParameters/serialNumber])
+  priority: CRITICAL
+  tags:
+    - Cloud
+    - AWS
+    - AWS_IAM
+    - SOC2
+    - SOC2_CC5.2
+    - SOC2_CC6.3
+    - SOC2_CC6.6
+    - PCI
+    - PCI_DSS
+    - PCI_DSS_8.3.1
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.9.2.3
+    - GDPR
+    - GDPR_25.1
+    - GDPR_25.2
+    - GDPR_25.3
+    - CIS
+    - CIS_AWS
+    - CIS_AWS-1.3.0
+    - CIS_AWS-1.3.0_1.6
+    - AWS_FSBP
+    - AWS_FSBP_iam.6
+    - AWS_WAF
+    - AWS_WAF_SEC-1
+  source: aws_cloudtrail
+
+- rule: Deactivate MFA for Root User
+  desc: Detect deactivating MFA configuration for root.
+  condition:
+    aws.eventName="DeactivateMFADevice" and not aws.errorCode exists
+    and jevt.value[/userIdentity/type]="Root"
+    and jevt.value[/requestParameters/userName]="AWS ROOT USER"
+  output:
+    Multi Factor Authentication configuration has been disabled for root
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     MFA serial number=%jevt.value[/requestParameters/serialNumber])
+  priority: CRITICAL
+  tags:
+    - Cloud
+    - AWS
+    - AWS_IAM
+    - SOC2
+    - SOC2_CC5.2
+    - SOC2_CC6.3
+    - SOC2_CC6.6
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.9.2.3
+    - GDPR
+    - GDPR_25.1
+    - GDPR_25.2
+    - GDPR_25.3
+    - CIS
+    - CIS_AWS
+    - CIS_AWS-1.3.0
+    - CIS_AWS-1.3.0_1.5
+    - AWS_WAF
+    - AWS_WAF_SEC-1
+  source: aws_cloudtrail
+
+- rule: Deactivate Virtual MFA for Root User
+  desc: Detect deactivating virtual MFA configuration for root.
+  condition:
+    aws.eventName="DeactivateMFADevice" and not aws.errorCode exists
+    and jevt.value[/userIdentity/type]="Root"
+    and jevt.value[/requestParameters/userName]="AWS ROOT USER"
+    and not jevt.value[/requestParameters/serialNumber] contains ":u2f/"
+  output:
+    Virtual Multi Factor Authentication configuration has been disabled for root
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     MFA serial number=%jevt.value[/requestParameters/serialNumber])
+  priority: CRITICAL
+  tags:
+    - Cloud
+    - AWS
+    - AWS_IAM
+    - SOC2
+    - SOC2_CC5.2
+    - SOC2_CC6.3
+    - SOC2_CC6.6
+    - PCI
+    - PCI_DSS
+    - PCI_DSS_8.3.1
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.9.2.3
+    - GDPR
+    - GDPR_25.1
+    - GDPR_25.2
+    - GDPR_25.3
+    - CIS
+    - CIS_AWS
+    - CIS_AWS-1.3.0
+    - CIS_AWS-1.3.0_1.5
+    - AWS_WAF
+    - AWS_WAF_SEC-1
+  source: aws_cloudtrail
+
+- rule: Delete Virtual MFA for Root User
+  desc: Detect deleting MFA configuration for root.
+  condition:
+    aws.eventName="DeleteVirtualMFADevice" and not aws.errorCode exists
+    and jevt.value[/userIdentity/type]="Root"
+    and not jevt.value[/requestParameters/userName] exists
+  output:
+    Virtual Multi Factor Authentication configuration has been deleted for root
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     MFA serial number=%jevt.value[/requestParameters/serialNumber])
+  priority: CRITICAL
+  tags:
+    - Cloud
+    - AWS
+    - AWS_IAM
+    - SOC2
+    - SOC2_CC5.2
+    - SOC2_CC6.3
+    - SOC2_CC6.6
+    - PCI
+    - PCI_DSS
+    - PCI_DSS_8.3.1
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.9.2.3
+    - GDPR
+    - GDPR_25.1
+    - GDPR_25.2
+    - GDPR_25.3
+    - CIS
+    - CIS_AWS
+    - CIS_AWS-1.3.0
+    - CIS_AWS-1.3.0_1.5
+    - AWS_WAF
+    - AWS_WAF_SEC-1
+  source: aws_cloudtrail
+
+- rule: Root User Executing AWS Command
+  desc: Detect root user executing AWS command.
+  condition:
+    jevt.value[/userIdentity/type] exists and
+    jevt.value[/userIdentity/type] = "Root" and
+    not aws.errorCode exists
+  exceptions:
+  - name: region_command
+    fields: [aws.region, aws.eventName]
+  output:
+    Root AWS user has executed a command
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     command context=%aws.eventSource,
+     command executed=%aws.eventName)
+  priority: CRITICAL
+  tags:
+    - Cloud
+    - AWS
+    - AWS_IAM
+    - SOC2
+    - SOC2_CC6.2
+    - SOC2_CC6.6
+    - NIST
+    - NIST_800-53
+    - NIST_800-53_AC-6(9)
+    - NIST_800-53_AU-6(8)
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.6.1.2
+    - ISO_27001_A.9.2.3
+    - HIPAA
+    - HIPAA_164.308(a)
+    - HIPAA_164.312(a)
+    - HIPAA_164.312(b)
+    - HITRUST
+    - HITRUST_CSF
+    - HITRUST_CSF_01.c
+    - HITRUST_CSF_09.aa
+    - GDPR
+    - GDPR_25.1
+    - GDPR_25.2
+    - GDPR_25.3
+    - AWS_WAF
+    - AWS_WAF_SEC-1
+  source: aws_cloudtrail
+
+- rule: Add AWS User to Group
+  desc: Detect adding an user to a group.
+  condition:
+    aws.eventName="AddUserToGroup" and not aws.errorCode exists
+  output:
+    An AWS user has been added to a group
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     added user=%jevt.value[/requestParameters/userName],
+     groupName=%jevt.value[/requestParameters/groupName])
+  priority: INFO
+  tags:
+    - Cloud
+    - AWS
+    - AWS_IAM
+    - NIST
+    - NIST_800-53
+    - NIST_800-53_AC-2(4)
+    - FedRAMP
+    - FedRAMP_AC-2(4)
+    - HIPAA
+    - HIPAA_164.308(a)
+    - HIPAA_164.312(a)
+    - AWS_WAF
+    - AWS_WAF_SEC-3
+  source: aws_cloudtrail
+
+- rule: Attach Administrator Policy
+  desc: Detect attaching an administrator policy to a user.
+  condition:
+    aws.eventName="AttachUserPolicy" and not aws.errorCode exists and
+    jevt.value[/requestParameters/policyArn]="arn:aws:iam::aws:policy/AdministratorAccess"
+  output:
+    An administrator policy has been attached to an user
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     user attached to=%jevt.value[/requestParameters/userName])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_IAM
+    - SOC2
+    - SOC2_CC6.6
+    - NIST
+    - NIST_800-171
+    - NIST_800-171_3.1.5
+    - NIST_800-53
+    - NIST_800-53_AC-6
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.6.1.2
+    - HIPAA
+    - HIPAA_164.308(a)
+    - HIPAA_164.312(a)
+    - HITRUST
+    - HITRUST_CSF
+    - HITRUST_CSF_01.c
+    - HITRUST_CSF_01.i
+    - HITRUST_CSF_01.s
+    - HITRUST_CSF_01.v
+    - HITRUST_CSF_01.y
+    - HITRUST_CSF_05.i
+    - HITRUST_CSF_10.j
+    - AWS_WAF
+    - AWS_WAF_SEC-3
+  source: aws_cloudtrail
+
+- rule: Attach IAM Policy to User
+  desc: Detect attaching an IAM policy to a user.
+  condition:
+    aws.eventName="AttachUserPolicy" and not aws.errorCode exists
+  output:
+    An IAM policy has been attached to a user
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     policy attached=%jevt.value[/requestParameters/policyArn],
+     user attached to=%jevt.value[/requestParameters/userName])
+  priority: NOTICE
+  tags:
+    - Cloud
+    - AWS
+    - AWS_IAM
+    - SOC2
+    - SOC2_CC6.6
+    - PCI
+    - PCI_DSS
+    - PCI_DSS_7.2.1
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.6.1.2
+    - GDPR
+    - GDPR_25.1
+    - GDPR_25.2
+    - GDPR_25.3
+    - AWS_FSBP
+    - AWS_FSBP_iam.2
+    - AWS_WAF
+    - AWS_WAF_SEC-3
+  source: aws_cloudtrail
+
+- rule: Create Access Key for User
+  desc: Detect creation of an access key for a user.
+  condition:
+    aws.eventName="CreateAccessKey" and
+    jevt.value[/requestParameters/userName] exists and
+    not aws.errorCode exists
+  output:
+    A new access key for a user has been created
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     requested user=%jevt.value[/responseElements/accessKey/userName],
+     new access key=%jevt.value[/responseElements/accessKey/accessKeyId])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_IAM
+  source: aws_cloudtrail
+
+- rule: Create Group
+  desc: Detect creation of a new user group.
+  condition:
+    aws.eventName="CreateGroup" and not aws.errorCode exists
+  output:
+    A new user group has been created.
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     group name=%jevt.value[/requestParameters/groupName])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_IAM
+    - MITRE
+    - MITRE_TA0003_persistence
+    - AWS_WAF
+    - AWS_WAF_SEC-2
+  source: aws_cloudtrail
+
+- rule: Create Security Group Rule Allowing SSH Ingress
+  desc: Detect creation of security group rule allowing SSH ingress.
+  condition: >
+    aws.eventName="AuthorizeSecurityGroupIngress" and not aws.errorCode exists and
+    (
+      jevt.value[/requestParameters/ipPermissions/items/0/fromPort]<=22 and
+      jevt.value[/requestParameters/ipPermissions/items/0/toPort]>=22 and
+      (
+        jevt.value[/requestParameters/ipPermissions/items/0/ipRanges/items/0/cidrIp]="0.0.0.0/0" or
+        jevt.value[/requestParameters/ipPermissions/items/0/ipv6Ranges/items/0/cidrIpv6]="::/0"
+      )
+    )
+  output:
+    Detected creation of security group rule allowing SSH ingress
+    (requesting user=%aws.user,
+    requesting IP=%aws.sourceIP,
+    AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+    security group=%jevt.value[/requestParameters/groupId])
+  priority: ERROR
+  tags:
+    - Cloud
+    - AWS
+    - AWS_IAM
+    - SOC2
+    - SOC2_CC6.6
+    - SOC2_CC7.2
+    - PCI
+    - PCI_DSS
+    - PCI_DSS_1.2.1
+    - PCI_DSS_1.3.1
+    - PCI_DSS_2.2.2
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.14.1.2
+    - CIS
+    - CIS_AWS
+    - CIS_AWS-1.3.0
+    - CIS_AWS-1.3.0_5.2
+    - AWS_WAF
+    - AWS_WAF_SEC-3
+    - AWS_WAF_REL-10
+  source: aws_cloudtrail
+
+- rule: Create Security Group Rule Allowing Ingress Open to the World
+  desc: Detect creation of security group rule allowing ingress open to the world.
+  condition: >
+    aws.eventName="AuthorizeSecurityGroupIngress" and not aws.errorCode exists and
+    (
+      not (
+        jevt.value[/requestParameters/ipPermissions/items/0/fromPort]=80 and
+        jevt.value[/requestParameters/ipPermissions/items/0/toPort]=80
+      ) and
+      not (
+        jevt.value[/requestParameters/ipPermissions/items/0/fromPort]=443 and
+        jevt.value[/requestParameters/ipPermissions/items/0/toPort]=443
+      ) and
+      (
+        jevt.value[/requestParameters/ipPermissions/items/0/ipRanges/items/0/cidrIp]="0.0.0.0/0" or
+        jevt.value[/requestParameters/ipPermissions/items/0/ipv6Ranges/items/0/cidrIpv6]="::/0"
+      )
+    )
+  output:
+    Detected creation of security group rule allowing ingress open to the world
+    (requesting user=%aws.user,
+    requesting IP=%aws.sourceIP,
+    AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+    security group=%jevt.value[/requestParameters/groupId],
+    from port=%jevt.value[/requestParameters/ipPermissions/items/0/fromPort],
+    to port=%jevt.value[/requestParameters/ipPermissions/items/0/toPort])
+  priority: ERROR
+  tags:
+    - Cloud
+    - AWS
+    - AWS_IAM
+    - SOC2
+    - SOC2_CC6.6
+    - SOC2_CC7.2
+    - PCI
+    - PCI_DSS
+    - PCI_DSS_1.2.1
+    - PCI_DSS_1.3.1
+    - PCI_DSS_2.2.2
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.14.1.2
+    - CIS
+    - CIS_AWS
+    - CIS_AWS-1.3.0
+    - CIS_AWS-1.3.0_5.2
+    - AWS_WAF
+    - AWS_WAF_SEC-3
+    - AWS_WAF_REL-10
+  source: aws_cloudtrail
+
+- rule: Create AWS user
+  desc: Detect creation of a new AWS user.
+  condition:
+    aws.eventSource="iam.amazonaws.com" and
+    aws.eventName="CreateUser" and
+    not aws.errorCode exists
+  output:
+    A new AWS user has been created
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     new user created=%jevt.value[/requestParameters/userName])
+  priority: INFO
+  tags:
+    - Cloud
+    - AWS
+    - AWS_IAM
+    - NIST
+    - NIST_800-171
+    - NIST_800-171_3.1.1
+    - NIST_800-171_3.1.2
+    - NIST
+    - NIST_800-53
+    - NIST_800-53_AC-2
+    - FedRAMP
+    - FedRAMP_AC-2
+    - HIPAA
+    - HIPAA_164.308(a)
+    - HIPAA_164.312(a)
+    - MITRE
+    - MITRE_T1136_create_account
+    - MITRE_TA0003_persistence
+    - AWS_WAF
+    - AWS_WAF_SEC-2
+  source: aws_cloudtrail
+
+- rule: Create AWS user (SSO)
+  desc: Detect creation of a new AWS user via SSO.
+  condition:
+    aws.eventSource="sso-directory.amazonaws.com" and
+    aws.eventName="CreateUser" and
+    not aws.errorCode exists
+  output:
+    A new AWS user has been created (SSO)
+    (requesting IP=%aws.sourceIP,
+     new user ID=%jevt.value[/responseElements/user/userId])
+  priority: INFO
+  tags:
+    - Cloud
+    - AWS
+    - AWS_IAM
+    - NIST
+    - NIST_800-171
+    - NIST_800-171_3.1.1
+    - NIST_800-171_3.1.2
+    - NIST
+    - NIST_800-53
+    - NIST_800-53_AC-2
+    - FedRAMP
+    - FedRAMP_AC-2
+    - HIPAA
+    - HIPAA_164.308(a)
+    - HIPAA_164.312(a)
+    - MITRE
+    - MITRE_T1136_create_account
+    - MITRE_TA0003_persistence
+    - AWS_WAF
+    - AWS_WAF_SEC-2
+  source: aws_cloudtrail
+
+- rule: Create IAM Policy that Allows All
+  desc: Detect creation of IAM policy that allows all.
+  condition: >
+    aws.eventName="CreatePolicy" and not aws.errorCode exists and
+    (jevt.value[/requestParameters/policyDocument] contains "\"Resource\": \"*\"" or
+    jevt.value[/requestParameters/policyDocument] contains "\"Resource\":\"*\"" ) and
+    (jevt.value[/requestParameters/policyDocument] contains "\"Effect\": \"Allow\"" or
+    jevt.value[/requestParameters/policyDocument] contains "\"Effect\":\"Allow\"" )
+  output:
+    Detected creation of IAM policy that allows all
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     policy=%jevt.value[/requestParameters/policyName],
+     policy arn=%jevt.value[/responseElements/policy/arn])
+  priority: CRITICAL
+  tags:
+    - Cloud
+    - AWS
+    - AWS_IAM
+    - SOC2
+    - SOC2_CC5.2
+    - SOC2_CC6.6
+    - PCI
+    - PCI_DSS
+    - PCI_DSS_7.2.1
+    - NIST
+    - NIST_800-53
+    - NIST_800-53_AC-2(12)
+    - FedRAMP
+    - FedRAMP_AC-2(12)
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.6.1.2
+    - HIPAA
+    - HIPAA_164.308(a)
+    - HIPAA_164.312(a)
+    - GDPR
+    - GDPR_25.1
+    - GDPR_25.2
+    - GDPR_25.3
+    - CIS
+    - CIS_AWS
+    - CIS_AWS-1.3.0
+    - CIS_AWS-1.3.0_1.16
+    - AWS_FSBP
+    - AWS_FSBP_iam.1
+    - AWS_WAF
+    - AWS_WAF_SEC-3
+  source: aws_cloudtrail
+
+- rule: Deactivate MFA for User Access
+  desc: Detect deactivating MFA configuration for user access.
+  condition:
+    aws.eventName="DeactivateMFADevice" and
+    not aws.errorCode exists
+  output:
+    Multi Factor Authentication configuration has been disabled for a user
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region)
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_IAM
+    - SOC2
+    - SOC2_CC5.2
+    - PCI
+    - PCI_DSS
+    - PCI_DSS_8.3.1
+    - NIST
+    - NIST_800-171
+    - NIST_800-171_3.1.1
+    - NIST_800-171_3.1.2
+    - NIST_800-53
+    - NIST_800-53_AC-2
+    - FedRAMP
+    - FedRAMP_AC-2
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.9.4.2
+    - HIPAA
+    - HIPAA_164.308(a)
+    - HIPAA_164.312(a)
+    - GDPR
+    - GDPR_25.1
+    - GDPR_25.2
+    - GDPR_25.3
+    - CIS
+    - CIS_AWS
+    - CIS_AWS-1.3.0
+    - CIS_AWS-1.3.0_1.1
+    - AWS_FSBP
+    - AWS_FSBP_iam.5
+    - AWS_WAF
+    - AWS_WAF_SEC-1
+  source: aws_cloudtrail
+
+- rule: Delete Group
+  desc: Detect deletion of a user group.
+  condition:
+    aws.eventName="DeleteGroup" and not aws.errorCode exists
+  output:
+    A user group has been deleted.
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     group name=%jevt.value[/requestParameters/groupName])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_IAM
+    - MITRE
+    - MITRE_T1531_accout_access_removal
+    - MITRE_TA0040_impact
+    - AWS_WAF
+    - AWS_WAF_SEC-2
+  source: aws_cloudtrail
+
+- rule: Delete AWS user
+  desc: Detect deletion of an AWS user.
+  condition:
+    aws.eventSource="iam.amazonaws.com" and
+    aws.eventName="DeleteUser" and
+    not aws.errorCode exists
+  output:
+    An AWS user has been deleted
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     user deleted=%jevt.value[/requestParameters/userName])
+  priority: INFO
+  tags:
+    - Cloud
+    - AWS
+    - AWS_IAM
+  source: aws_cloudtrail
+
+- rule: Delete AWS user (SSO)
+  desc: Detect deletion of an AWS user via SSO.
+  condition:
+    aws.eventSource="sso-directory.amazonaws.com" and
+    aws.eventName="DeleteUser" and
+    not aws.errorCode exists
+  output:
+    An AWS user has been deleted (SSO)
+    (requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     deleted user ID=%jevt.value[/requestParameters/userId])
+  priority: INFO
+  tags:
+    - Cloud
+    - AWS
+    - AWS_IAM
+  source: aws_cloudtrail
+
+- rule: Put IAM Inline Policy to User
+  desc: Detect putting an IAM inline policy to an user.
+  condition: >
+    aws.eventName="PutUserPolicy" and not aws.errorCode exists
+  output:
+    An IAM inline policy has been put in a user
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     policy=%jevt.value[/requestParameters/policyName],
+     group=%jevt.value[/requestParameters/userName])
+  priority: NOTICE
+  tags:
+    - Cloud
+    - AWS
+    - AWS_IAM
+    - SOC2
+    - SOC2_CC6.6
+    - PCI
+    - PCI_DSS
+    - PCI_DSS_7.2.1
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.6.1.2
+    - GDPR
+    - GDPR_25.1
+    - GDPR_25.2
+    - GDPR_25.3
+    - CIS
+    - CIS_AWS
+    - CIS_AWS-1.3.0
+    - CIS_AWS-1.3.0_1.15
+    - AWS_FSBP
+    - AWS_FSBP_iam.2
+    - AWS_WAF
+    - AWS_WAF_SEC-3
+  source: aws_cloudtrail
+
+- rule: Remove AWS User from Group
+  desc: Detect removing a user from a group.
+  condition:
+    aws.eventName="RemoveUserFromGroup" and not aws.errorCode exists
+  output:
+    An AWS user has been removed from a group
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     removed user=%jevt.value[/requestParameters/userName],
+     group name=%jevt.value[/requestParameters/groupName])
+  priority: INFO
+  tags:
+    - Cloud
+    - AWS
+    - AWS_IAM
+  source: aws_cloudtrail
+
+- rule: Update Account Password Policy Not Expiring
+  desc: Detect updating password policy not expiring at all.
+  condition:
+    aws.eventName="UpdateAccountPasswordPolicy"
+    and not aws.errorCode exists
+    and not jevt.value[/requestParameters/maxPasswordAge] exists
+  output:
+    Requirement of password expiration has been removed from the account password policy
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region)
+  priority: NOTICE
+  tags:
+    - Cloud
+    - AWS
+    - AWS_IAM
+    - SOC2
+    - SOC2_CC5.2
+    - PCI
+    - PCI_DSS
+    - PCI_DSS_8.2.4
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.9.2.5
+    - ISO_27001_A.9.4.2
+    - GDPR
+    - GDPR_25.1
+    - GDPR_25.2
+    - GDPR_25.3
+    - CIS
+    - CIS_AWS
+    - CIS_AWS-1.3.0
+    - CIS_AWS-1.3.0_1.14
+    - AWS_FSBP
+    - AWS_FSBP_iam.7
+    - AWS_WAF
+    - AWS_WAF_SEC-1
+  source: aws_cloudtrail
+
+- rule: Update Account Password Policy Expiring in More Than 90 Days
+  desc: Detect updating password policy expiring in more than 90 days.
+  condition:
+    aws.eventName="UpdateAccountPasswordPolicy"
+    and not aws.errorCode exists
+    and jevt.value[/requestParameters/maxPasswordAge] > 90
+  output:
+    Requirement of a maximum password age of 90 days has been removed from the account password policy
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region)
+  priority: NOTICE
+  tags:
+    - Cloud
+    - AWS
+    - AWS_IAM
+    - SOC2
+    - SOC2_CC5.2
+    - PCI
+    - PCI_DSS
+    - PCI_DSS_8.2.4
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.9.2.5
+    - ISO_27001_A.9.4.2
+    - GDPR
+    - GDPR_25.1
+    - GDPR_25.2
+    - GDPR_25.3
+    - CIS
+    - CIS_AWS
+    - CIS_AWS-1.3.0
+    - CIS_AWS-1.3.0_1.14
+    - AWS_FSBP
+    - AWS_FSBP_iam.7
+    - AWS_WAF
+    - AWS_WAF_SEC-1
+  source: aws_cloudtrail
+
+- rule: Update Account Password Policy Not Preventing Reuse of Last 24 Passwords
+  desc: Detect updating password policy not preventing reuse of the last 24 passwords.
+  condition:
+    aws.eventName="UpdateAccountPasswordPolicy"
+    and not aws.errorCode exists
+    and (not jevt.value[/requestParameters/passwordReusePrevention] exists
+    or jevt.value[/requestParameters/passwordReusePrevention]<24)
+  output:
+    Prevention of reuse of the last 24 passwords has been removed from the account password policy
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region)
+  priority: NOTICE
+  tags:
+    - Cloud
+    - AWS
+    - AWS_IAM
+    - SOC2
+    - SOC2_CC5.2
+    - NIST
+    - NIST_800-171
+    - NIST_800-171_3.5.8
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.9.4.2
+    - ISO_27001_A.9.4.3
+    - GDPR
+    - GDPR_25.1
+    - GDPR_25.2
+    - GDPR_25.3
+    - CIS
+    - CIS_AWS
+    - CIS_AWS-1.3.0
+    - CIS_AWS-1.3.0_1.9
+    - AWS_FSBP
+    - AWS_FSBP_iam.7
+    - AWS_WAF
+    - AWS_WAF_SEC-1
+  source: aws_cloudtrail
+
+- rule: Update Account Password Policy Not Preventing Reuse of Last 4 Passwords
+  desc: Detect updating password policy not preventing reuse of the last 4 passwords.
+  condition:
+    aws.eventName="UpdateAccountPasswordPolicy"
+    and not aws.errorCode exists
+    and (not jevt.value[/requestParameters/passwordReusePrevention] exists
+    or jevt.value[/requestParameters/passwordReusePrevention]<4)
+  output:
+    Prevention of reuse of the last 4 passwords has been removed from the account password policy
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region)
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_IAM
+    - SOC2
+    - SOC2_CC5.2
+    - PCI
+    - PCI_DSS
+    - PCI_DSS_8.2.5
+    - NIST
+    - NIST_800-171
+    - NIST_800-171_3.5.8
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.9.4.2
+    - ISO_27001_A.9.4.3
+  source: aws_cloudtrail
+
+- rule: Update Account Password Policy Not Requiring 14 Characters
+  desc: Detect updating password policy not requiring a minimum length of 14 characters.
+  condition: >
+    aws.eventName="UpdateAccountPasswordPolicy"
+    and not aws.errorCode exists
+    and jevt.value[/requestParameters/minimumPasswordLength] < 14
+  output:
+    Requirement of a minimum length of 14 characters has been removed from the account password policy
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region)
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_IAM
+    - SOC2
+    - SOC2_CC5.2
+    - NIST
+    - NIST_800-171
+    - NIST_800-171_3.5.7
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.9.4.2
+    - ISO_27001_A.9.4.3
+    - GDPR
+    - GDPR_25.1
+    - GDPR_25.2
+    - GDPR_25.3
+    - CIS
+    - CIS_AWS
+    - CIS_AWS-1.3.0
+    - CIS_AWS-1.3.0_1.8
+    - AWS_FSBP
+    - AWS_FSBP_iam.7
+    - AWS_WAF
+    - AWS_WAF_SEC-1
+  source: aws_cloudtrail
+
+- rule: Update Account Password Policy Not Requiring 7 Characters
+  desc: Detect updating password policy not requiring a minimum length of 7 characters.
+  condition: >
+    aws.eventName="UpdateAccountPasswordPolicy"
+    and not aws.errorCode exists
+    and jevt.value[/requestParameters/minimumPasswordLength] < 7
+  output:
+    Requirement of a minimum length of 7 characters has been removed from the account password policy
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region)
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_IAM
+    - SOC2
+    - SOC2_CC5.2
+    - PCI
+    - PCI_DSS
+    - PCI_DSS_8.2.3
+    - NIST
+    - NIST_800-171
+    - NIST_800-171_3.5.7
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.9.4.2
+    - ISO_27001_A.9.4.3
+  source: aws_cloudtrail
+
+- rule: Update Account Password Policy Not Requiring Lowercase
+  desc: Detect updating password policy not requiring the use of an lowercase letter
+  condition:
+    aws.eventName="UpdateAccountPasswordPolicy"
+    and not aws.errorCode exists
+    and jevt.value[/requestParameters/requireLowercaseCharacters]=false
+  output:
+    Requirement of the use of an lowercase letter has been removed from the account password policy
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region)
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_IAM
+    - SOC2
+    - SOC2_CC5.2
+    - PCI
+    - PCI_DSS
+    - PCI_DSS_8.2.3
+    - NIST
+    - NIST_800-171
+    - NIST_800-171_3.5.7
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.9.4.2
+    - ISO_27001_A.9.4.3
+    - GDPR
+    - GDPR_25.1
+    - GDPR_25.2
+    - GDPR_25.3
+    - AWS_FSBP
+    - AWS_FSBP_iam.7
+    - AWS_WAF
+    - AWS_WAF_SEC-1
+  source: aws_cloudtrail
+
+- rule: Update Account Password Policy Not Requiring Number
+  desc: Detect updating password policy not requiring the use of a number
+  condition:
+    aws.eventName="UpdateAccountPasswordPolicy"
+    and not aws.errorCode exists
+    and jevt.value[/requestParameters/requireNumbers]=false
+  output:
+    Requirement of the use of a number has been removed from the account password policy
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region)
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_IAM
+    - SOC2
+    - SOC2_CC5.2
+    - PCI
+    - PCI_DSS
+    - PCI_DSS_8.2.3
+    - NIST
+    - NIST_800-171
+    - NIST_800-171_3.5.7
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.9.4.2
+    - ISO_27001_A.9.4.3
+    - GDPR
+    - GDPR_25.1
+    - GDPR_25.2
+    - GDPR_25.3
+    - AWS_FSBP
+    - AWS_FSBP_iam.7
+    - AWS_WAF
+    - AWS_WAF_SEC-1
+  source: aws_cloudtrail
+
+- rule: Update Account Password Policy Not Requiring Symbol
+  desc: Detect updating password policy not requiring the use of a symbol
+  condition:
+    aws.eventName="UpdateAccountPasswordPolicy"
+    and not aws.errorCode exists
+    and jevt.value[/requestParameters/requireSymbols]=false
+  output:
+    Requirement of the use of a symbol has been removed from the account password policy
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region)
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_IAM
+    - SOC2
+    - SOC2_CC5.2
+    - PCI
+    - PCI_DSS
+    - PCI_DSS_8.2.3
+    - NIST
+    - NIST_800-171
+    - NIST_800-171_3.5.7
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.9.4.2
+    - ISO_27001_A.9.4.3
+    - GDPR
+    - GDPR_25.1
+    - GDPR_25.2
+    - GDPR_25.3
+    - AWS_FSBP
+    - AWS_FSBP_iam.7
+    - AWS_WAF
+    - AWS_WAF_SEC-1
+  source: aws_cloudtrail
+
+- rule: Update Account Password Policy Not Requiring Uppercase
+  desc: Detect updating password policy not requiring the use of an uppercase letter
+  condition:
+    aws.eventName="UpdateAccountPasswordPolicy"
+    and not aws.errorCode exists
+    and jevt.value[/requestParameters/requireUppercaseCharacters]=false
+  output:
+    Requirement of the use of an uppercase letter has been removed from the account password policy
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region)
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_IAM
+    - SOC2
+    - SOC2_CC5.2
+    - PCI
+    - PCI_DSS
+    - PCI_DSS_8.2.3
+    - NIST
+    - NIST_800-171
+    - NIST_800-171_3.5.7
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.9.4.2
+    - ISO_27001_A.9.4.3
+    - GDPR
+    - GDPR_25.1
+    - GDPR_25.2
+    - GDPR_25.3
+    - AWS_FSBP
+    - AWS_FSBP_iam.7
+    - AWS_WAF
+    - AWS_WAF_SEC-1
+  source: aws_cloudtrail
+
+- rule: Update Assume Role Policy
+  desc: Detect modifying a role.
+  condition: >
+    aws.eventName="UpdateAssumeRolePolicy" and not aws.errorCode exists
+  output:
+    An assume role policy has been modified.
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     role name=%jevt.value[/requestParameters/roleName],
+     policy document=%jevt.value[/requestParameters/policyDocument])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_IAM
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.9.1.1
+    - MITRE
+    - MITRE_T1110_brute_force
+    - MITRE_TA0006_credential_access
+    - AWS_WAF
+    - AWS_WAF_SEC-3
+  source: aws_cloudtrail
+
+- rule: Create Customer Master Key
+  desc: Detect creation of a new CMK (with rotation disabled).
+  condition:
+    aws.eventName="CreateKey" and not aws.errorCode exists
+  output:
+    A new CMK user has been created with rotation disabled
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     new key created=%jevt.value[/responseElements/keyMetadata/keyId])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_KMS
+    - SOC2
+    - SOC2_CC5.2
+    - SOC2_CC6.6
+    - PCI
+    - PCI_DSS
+    - PCI_DSS_3.6.4
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.10.1.2
+    - AWS_WAF
+    - AWS_WAF_SEC-1
+  source: aws_cloudtrail
+
+- rule: Disable CMK Rotation
+  desc: Detect disabling of a customer master key's rotation.
+  condition:
+    aws.eventName="DisableKeyRotation" and not aws.errorCode exists
+  output:
+    CMK rotation has been disabled
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     disabled key id=%jevt.value[/requestParameters/keyId])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_KMS
+    - SOC2
+    - SOC2_CC6.1
+    - SOC2_CC8.1
+    - PCI
+    - PCI_DSS
+    - PCI_DSS_3.6.4
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.10.1.2
+    - ISO_27001_A.18.1.5
+    - GDPR
+    - GDPR_32.1
+    - GDPR_32.2
+    - CIS
+    - CIS_AWS
+    - CIS_AWS-1.3.0
+    - CIS_AWS-1.3.0_3.8
+    - AWS_WAF
+    - AWS_WAF_SEC-1
+  source: aws_cloudtrail
+
+- rule: Disable Key
+  desc: Detect disabling a customer master key (CMK)
+    - thereby preventing its use for cryptographic operations.
+  condition:
+    aws.eventName="DisableKey" and not aws.errorCode exists
+  output:
+    A customer master key has been disabled.
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     key id=%jevt.value[/requestParameters/keyId])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_KMS
+    - AWS_WAF
+    - AWS_WAF_SEC-1
+  source: aws_cloudtrail
+
+- rule: Remove KMS Key Rotation
+  desc: Detect removal of KMS key rotation.
+  condition:
+    aws.eventName="DisableKeyRotation" and not aws.errorCode exists
+  output:
+    Detected removal of KMS key rotation
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     Key ARN=%jevt.value[/resources[0]/ARN])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_KMS
+    - SOC2
+    - SOC2_CC6.1
+    - SOC2_CC8.1
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.10.1.2
+    - ISO_27001_A.18.1.5
+    - GDPR
+    - GDPR_32.1
+    - GDPR_32.2
+    - AWS_WAF
+    - AWS_WAF_SEC-1
+  source: aws_cloudtrail
+
+- rule: Schedule Key Deletion
+  desc: Detect scheduling of the deletion of a customer master key.
+  condition:
+    aws.eventName="ScheduleKeyDeletion" and not aws.errorCode exists
+  output:
+    A customer master key has been scheduled for deletion.
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     key id=%jevt.value[/requestParameters/keyId])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_KMS
+    - AWS_FSBP
+    - AWS_FSBP_kms.3
+    - AWS_WAF
+    - AWS_WAF_SEC-1
+  source: aws_cloudtrail
+
+- rule: Create Lambda Function
+  desc: Detect creation of a Lambda function.
+  condition:
+    aws.eventName="CreateFunction20150331" and not aws.errorCode exists
+  output:
+    Lambda function has been created.
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     lambda function=%jevt.value[/requestParameters/functionName])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_Lambda
+    - MITRE
+    - MITRE_TA0003_persistence
+  source: aws_cloudtrail
+
+- rule: Create Lambda Function Not Using Latest Runtime
+  desc: Detect creation of a Lambda function not using the latest runtime.
+  condition:
+    aws.eventName="CreateFunction20150331" and not aws.errorCode exists and
+    jevt.value[/requestParameters/runtime] in (aws_supported_runtimes) and
+    not jevt.value[/requestParameters/runtime] in (aws_latest_runtimes)
+  output:
+    Lambda function has been created using an old runtime
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     lambda function=%jevt.value[/requestParameters/functionName],
+     runtime=%jevt.value[/requestParameters/runtime])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_Lambda
+    - SOC2
+    - SOC2_CC7.1
+    - MITRE
+    - MITRE_T1190_exploit_public_facing_application
+    - MITRE_TA0003_persistence
+  source: aws_cloudtrail
+
+- rule: Create Lambda Function Using Unsupported Runtime
+  desc: Detect creation of a Lambda function using an unsupported runtime.
+  condition:
+    aws.eventName="CreateFunction20150331" and not aws.errorCode exists and
+    not jevt.value[/requestParameters/runtime] in (aws_supported_runtimes)
+  output:
+    Lambda function has been created using an unsupported runtime
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     lambda function=%jevt.value[/requestParameters/functionName],
+     runtime=%jevt.value[/requestParameters/runtime])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_Lambda
+    - SOC2
+    - SOC2_CC7.1
+    - MITRE
+    - MITRE_T1190_exploit_public_facing_application
+    - MITRE_TA0003_persistence
+    - AWS_FSBP
+    - AWS_FSBP_lambda.2
+    - AWS_WAF
+    - AWS_WAF_OPS-6
+  source: aws_cloudtrail
+
+- rule: Dissociate Lambda Function from VPC
+  desc: Detect dissociation of a Lambda function from a VPC.
+  condition:
+    aws.eventName="UpdateFunctionConfiguration20150331v2" and not aws.errorCode exists and
+    jevt.value[/requestParameters/vpcConfig/subnetIds]="[]"
+  output:
+    Lambda function has been dissociated from a VPC
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     dissociated lambda function=%jevt.value[/requestParameters/functionName])
+  priority: NOTICE
+  tags:
+    - Cloud
+    - AWS
+    - AWS_Lambda
+    - SOC2
+    - SOC2_CC7.2
+    - PCI
+    - PCI_DSS
+    - PCI_DSS_1.2.1
+    - PCI_DSS_1.3.1
+    - PCI_DSS_1.3.2
+    - PCI_DSS_1.3.4
+    - AWS_WAF
+    - AWS_WAF_SEC-1
+  source: aws_cloudtrail
+
+- rule: Update Lambda Function Code
+  desc: Detect updates to a Lambda function code.
+  condition:
+    aws.eventName="UpdateFunctionCode20150331v2" and not aws.errorCode exists
+  output:
+    The code of a Lambda function has been updated.
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     lambda function=%jevt.value[/requestParameters/functionName])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_Lambda
+    - SOC2
+    - SOC2_CC7.2
+    - MITRE
+    - MITRE_T1496_resource_hijacking
+    - MITRE_TA0003_persistence
+    - MITRE_TA0040_impact
+  source: aws_cloudtrail
+
+- rule: Update Lambda Function Configuration
+  desc: Detect updates to a Lambda function configuration.
+  condition:
+    aws.eventName="UpdateFunctionConfiguration20150331v2" and not aws.errorCode exists
+  output:
+    The configuration of a Lambda function has been updated.
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     lambda function=%jevt.value[/requestParameters/functionName])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_Lambda
+    - SOC2
+    - SOC2_CC7.2
+    - MITRE
+    - MITRE_T1496_resource_hijacking
+    - MITRE_TA0003_persistence
+    - MITRE_TA0040_impact
+  source: aws_cloudtrail
+
+- rule: Authorize DB Security Group Ingress
+  desc: Detect enabling ingress to a DBSecurityGroup using one of two forms of authorization.
+  condition:
+    aws.eventName="AuthorizeDBSecurityGroupIngress" and not aws.errorCode exists
+  output:
+    Ingress to a DBSecurityGroup using one of two forms of authorization has been enabled.
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     db security group name=%jevt.value[/requestParameters/dBSecurityGroupName])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_RDS
+    - SOC2
+    - SOC2_CC7.1
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.14.1.2
+    - AWS_WAF
+    - AWS_WAF_SEC-8
+    - AWS_WAF_REL-10
+  source: aws_cloudtrail
+
+- rule: Create DB Cluster
+  desc: Detect creation of a database cluster.
+  condition:
+    aws.eventName="CreateDBCluster" and not aws.errorCode exists
+  output:
+    A new database cluster has been created.
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     db cluster id=%jevt.value[/requestParameters/dBClusterIdentifier])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_RDS
+    - MITRE
+    - MITRE_TA0003_persistence
+  source: aws_cloudtrail
+
+- rule: Create RDS DB Instance with Public Access
+  desc: Detect the creation of a publicly accessible RDS DB instance.
+  condition:
+    aws.eventName="CreateDBInstance"
+    and not aws.errorCode exists
+    and jevt.value[/requestParameters/publiclyAccessible]=true
+  output:
+    A publicly accessible RDS DB instance has been created
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     RDS DB instance=%jevt.value[/requestParameters/dBInstanceIdentifier])
+  priority: CRITICAL
+  tags:
+    - Cloud
+    - AWS
+    - AWS_RDS
+    - SOC2
+    - SOC2_CC8.1
+    - PCI
+    - PCI_DSS
+    - PCI_DSS_1.2.1
+    - PCI_DSS_1.3.1
+    - PCI_DSS_1.3.2
+    - PCI_DSS_1.3.4
+    - PCI_DSS_1.3.6
+    - PCI_DSS_7.2.1
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.13.1.1
+    - AWS_FSBP
+    - AWS_FSBP_rds.2
+    - AWS_WAF
+    - AWS_WAF_SEC-8
+    - AWS_WAF_REL-10
+  source: aws_cloudtrail
+
+- rule: Create DB Security Group
+  desc: Detect creation of a database security group.
+  condition:
+    aws.eventName="CreateDBSecurityGroup" and not aws.errorCode exists
+  output:
+    A DB security group has been created.
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     db security group name=%jevt.value[/requestParameters/dBSecurityGroupName],
+     db security group description=%jevt.value[/requestParameters/dBSecurityGroupDescription])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_RDS
+    - AWS_WAF
+    - AWS_WAF_SEC-8
+    - AWS_WAF_REL-10
+  source: aws_cloudtrail
+
+- rule: Create Global Cluster
+  desc: Detect creation of a global cluster.
+  condition:
+    aws.eventName="CreateGlobalCluster" and not aws.errorCode exists
+  output:
+    A global cluster has been created.
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     engine=%jevt.value[/requestParameters/engine])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_RDS
+    - MITRE
+    - MITRE_TA0003_persistence
+    - AWS_WAF
+    - AWS_WAF_SEC-1
+  source: aws_cloudtrail
+
+- rule: Delete DB Cluster
+  desc: Detect deletion of a database cluster.
+  condition:
+    aws.eventName="DeleteDBCluster" and not aws.errorCode exists
+  output:
+    A database cluster has been deleted.
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     db cluster id=%jevt.value[/requestParameters/dBClusterIdentifier])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_RDS
+    - MITRE
+    - MITRE_T1485_data_destruction
+    - MITRE_TA0040_impact
+  source: aws_cloudtrail
+
+- rule: Delete DB Security Group
+  desc: Detect deletion of a database security group.
+  condition:
+    aws.eventName="DeleteDBSecurityGroup" and not aws.errorCode exists
+  output:
+    A DB security group has been deleted.
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     db security group name=%jevt.value[/requestParameters/dBSecurityGroupName])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_RDS
+    - SOC2
+    - SOC2_CC7.1
+    - AWS_WAF
+    - AWS_WAF_SEC-8
+    - AWS_WAF_REL-10
+  source: aws_cloudtrail
+
+- rule: Delete DB Snapshot
+  desc: Detect deletion of a database snapshot.
+  condition:
+    aws.eventName="DeleteDBSnapshot" and not aws.errorCode exists
+  output:
+    A database snapshot has been deleted.
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     db snapshot id=%jevt.value[/requestParameters/dBSnapshotIdentifier])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_RDS
+    - MITRE
+    - MITRE_T1485_data_destruction
+    - MITRE_TA0040_impact
+    - AWS_WAF
+    - AWS_WAF_REL-9
+  source: aws_cloudtrail
+
+- rule: Make RDS DB Instance Public
+  desc: Detect making public an RDS DB instance.
+  condition:
+    aws.eventName="ModifyDBInstance"
+    and not aws.errorCode exists
+    and jevt.value[/requestParameters/publiclyAccessible]=true
+  output:
+    An RDS DB instance has been made public
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     RDS DB instance=%jevt.value[/requestParameters/dBInstanceIdentifier])
+  priority: CRITICAL
+  tags:
+    - Cloud
+    - AWS
+    - AWS_RDS
+    - SOC2
+    - SOC2_CC8.1
+    - PCI
+    - PCI_DSS
+    - PCI_DSS_1.2.1
+    - PCI_DSS_1.3.1
+    - PCI_DSS_1.3.2
+    - PCI_DSS_1.3.4
+    - PCI_DSS_1.3.6
+    - PCI_DSS_7.2.1
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.13.1.1
+    - AWS_FSBP
+    - AWS_FSBP_rds.2
+    - AWS_WAF
+    - AWS_WAF_SEC-8
+    - AWS_WAF_REL-10
+  source: aws_cloudtrail
+
+- rule: Make RDS Snapshot Public
+  desc: Detect making public an RDS snapshot.
+  condition:
+    aws.eventName="ModifyDBSnapshotAttribute"
+    and not aws.errorCode exists
+    and jevt.value[/requestParameters/attributeName]="restore"
+    and jevt.value[/requestParameters/valuesToAdd/0]="all"
+  output:
+    An RDS snapshot has been made public
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     RDS snapshot=%jevt.value[/requestParameters/dBSnapshotIdentifier])
+  priority: CRITICAL
+  tags:
+    - Cloud
+    - AWS
+    - AWS_RDS
+    - SOC2
+    - SOC2_CC8.1
+    - PCI
+    - PCI_DSS
+    - PCI_DSS_1.2.1
+    - PCI_DSS_1.3.1
+    - PCI_DSS_1.3.4
+    - PCI_DSS_1.3.6
+    - PCI_DSS_7.2.1
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.13.1.1
+    - AWS_WAF
+    - AWS_WAF_SEC-8
+  source: aws_cloudtrail
+
+- rule: Modify RDS Snapshot Attribute
+  desc: Detect modification of an RDS snapshot attribute.
+  condition:
+    aws.eventName="ModifyDBSnapshotAttribute" and not aws.errorCode exists
+  output:
+    An RDS snapshot attribute has been modified.
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     RDS snapshot=%jevt.value[/requestParameters/dBSnapshotIdentifier])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_RDS
+    - MITRE
+    - MITRE_T1537_transfer_data_to_cloud_account
+    - MITRE_TA0010_exfiltration
+    - AWS_WAF
+    - AWS_WAF_SEC-8
+  source: aws_cloudtrail
+
+- rule: Revoke DB Security Group Ingress
+  desc: Detect revocation ingress from a DBSecurityGroup for previously authorized IP ranges or EC2 or VPC Security Groups.
+  condition:
+    aws.eventName="RevokeDBSecurityGroupIngress" and not aws.errorCode exists
+  output:
+    Ingress from a DBSecurityGroup for previously authorized IP ranges or EC2 or VPC Security Groups has been revoked.
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     db security group name=%jevt.value[/requestParameters/dBSecurityGroupName])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_RDS
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.12.1.2
+    - AWS_WAF
+    - AWS_WAF_SEC-8
+    - AWS_WAF_REL-10
+  source: aws_cloudtrail
+
+- rule: Stop DB Cluster
+  desc: Detect stopping of a database cluster.
+  condition:
+    aws.eventName="StopDBCluster" and not aws.errorCode exists
+  output:
+    A database cluster has been stopped.
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     db cluster id=%jevt.value[/requestParameters/dBClusterIdentifier])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_RDS
+    - MITRE
+    - MITRE_T1489_service_stop
+    - MITRE_TA0040_impact
+  source: aws_cloudtrail
+
+- rule: Stop DB Instance
+  desc: Detect stopping of a database instance.
+  condition:
+    aws.eventName="StopDBInstance" and not aws.errorCode exists
+  output:
+    A database instance has been stopped.
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     db instance id=%jevt.value[/requestParameters/dBInstanceIdentifier])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_RDS
+    - MITRE
+    - MITRE_T1489_service_stop
+    - MITRE_TA0040_impact
+  source: aws_cloudtrail
+
+- rule: Associate VPC with Hosted Zone
+  desc: Detect association of an Amazon VPC with a private hosted zone.
+  condition:
+    aws.eventName="AssociateVPCWithHostedZone" and not aws.errorCode exists
+  output:
+    An Amazon VPC has been associated with a private hosted zone.
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     hosted zone id=%jevt.value[/requestParameters/hostedZoneId],
+     vpc id=%jevt.value[/requestParameters/vPC/vPCId])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_Route53
+    - SOC2
+    - SOC2_CC6.6
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.9.1.2
+    - AWS_WAF
+    - AWS_WAF_REL-10
+  source: aws_cloudtrail
+
+- rule: Change Resource Record Sets
+  desc: Detect creation, changes, or deletion of a resource record set.
+  condition:
+    aws.eventName="ChangeResourceRecordSets" and
+    not aws.errorCode exists
+  exceptions:
+    - name: user_arn
+      fields: [aws.user, aws.arn]
+  output:
+    A resource record set has been created, changed or deleted.
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%aws.arn,
+     change info id=%jevt.value[/responseElements/changeInfo/id],
+     comment=%jevt.value[/responseElements/changeInfo/comment])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_Route53
+    - SOC2
+    - SOC2_CC6.6
+  source: aws_cloudtrail
+
+- rule: Register Domain
+  desc: Detect registry of a new domain.
+  condition:
+    aws.eventName="RegisterDomain" and not aws.errorCode exists
+  output:
+    A new domain has been registered.
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     domain name=%jevt.value[/requestParameters/domainName])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_Route53
+    - SOC2
+    - SOC2_CC6.6
+  source: aws_cloudtrail
+
+- rule: Delete Bucket CORS
+  desc: Detect deletion of the cors configuration for a bucket.
+  condition:
+    aws.eventName="DeleteBucketCors" and not aws.errorCode exists
+  output:
+    The cors configuration for a bucket has been deleted.
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     bucket name=%jevt.value[/requestParameters/bucketName])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_S3
+    - SOC2
+    - SOC2_CC8.1
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.9.1.2
+    - MITRE
+    - MITRE_T1070_indicator_removal_on_host
+    - MITRE_TA0005_defense_evasion
+    - AWS_WAF
+    - AWS_WAF_SEC-8
+    - AWS_WAF_REL-10
+  source: aws_cloudtrail
+
+- rule: Delete Bucket Encryption
+  desc: Detect deleting configuration to use encryption for bucket storage.
+  condition:
+    aws.eventName="DeleteBucketEncryption" and not aws.errorCode exists
+  output:
+    A encryption configuration for a bucket has been deleted
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     bucket=%jevt.value[/requestParameters/bucketName])
+  priority: CRITICAL
+  tags:
+    - Cloud
+    - AWS
+    - AWS_S3
+    - SOC2
+    - SOC2_CC6.1
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.10.1.1
+    - ISO_27001_A.18.1.5
+    - GDPR
+    - GDPR_32.1
+    - GDPR_32.2
+    - MITRE
+    - MITRE_T1070_indicator_removal_on_host
+    - MITRE_TA0005_defense_evasion
+    - CIS
+    - CIS_AWS
+    - CIS_AWS-1.3.0
+    - CIS_AWS-1.3.0_2.1.1
+    - AWS_FSBP
+    - AWS_FSBP_s3.4
+    - AWS_WAF
+    - AWS_WAF_SEC-8
+  source: aws_cloudtrail
+
+- rule: Delete Bucket Lifecycle
+  desc: Detect deletion of the lifecycle configuration from the specified bucket.
+  condition:
+    aws.eventName="DeleteBucketLifecycle" and not aws.errorCode exists
+  output:
+    A lifecycle configuration has been deleted for the specified bucket.
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     bucket name=%jevt.value[/requestParameters/bucketName])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_S3
+    - MITRE
+    - MITRE_T1070_indicator_removal_on_host
+    - MITRE_TA0005_defense_evasion
+    - AWS_WAF
+    - AWS_WAF_SEC-1
+  source: aws_cloudtrail
+
+- rule: Delete Bucket Policy
+  desc: Detect deletion of the policy of a specified bucket.
+  condition:
+    aws.eventName="DeleteBucketPolicy" and not aws.errorCode exists
+  output:
+    The policy of a specified bucket has been deleted.
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     bucket name=%jevt.value[/requestParameters/bucketName],
+     policy=%jevt.value[/requestParameters/policy])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_S3
+    - SOC2
+    - SOC2_CC8.1
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.9.1.2
+    - MITRE
+    - MITRE_T1070_indicator_removal_on_host
+    - MITRE_TA0005_defense_evasion
+    - AWS_WAF
+    - AWS_WAF_SEC-8
+  source: aws_cloudtrail
+
+- rule: Delete Bucket Public Access Block
+  desc: Detect deleting blocking public access to bucket.
+  condition:
+    (
+      aws.eventName="DeleteBucketPublicAccessBlock" or
+      (
+        aws.eventName="PutBucketPublicAccessBlock" and
+        jevt.value[/requestParameters/publicAccessBlock]="" and
+        (
+          jevt.value[/requestParameters/PublicAccessBlockConfiguration/RestrictPublicBuckets]=false or
+          jevt.value[/requestParameters/PublicAccessBlockConfiguration/BlockPublicPolicy]=false or
+          jevt.value[/requestParameters/PublicAccessBlockConfiguration/BlockPublicAcls]=false or
+          jevt.value[/requestParameters/PublicAccessBlockConfiguration/IgnorePublicAcls]=false
+        )
+      )
+    ) and
+    not aws.errorCode exists
+  output:
+    A pulic access block for a bucket has been deleted
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     bucket=%jevt.value[/requestParameters/bucketName])
+  priority: CRITICAL
+  tags:
+    - Cloud
+    - AWS
+    - AWS_S3
+    - SOC2
+    - SOC2_CC8.1
+    - PCI
+    - PCI_DSS
+    - PCI_DSS_1.2.1
+    - PCI_DSS_1.3.1
+    - PCI_DSS_1.3.2
+    - PCI_DSS_1.3.4
+    - PCI_DSS_1.3.6
+    - PCI_DSS_7.2.1
+    - NIST
+    - NIST_800-171
+    - NIST_800-171_3.3.7
+    - NIST_800-53
+    - NIST_800-53_AU-8
+    - FedRAMP
+    - FedRAMP_AU-8
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.9.1.2
+    - ISO_27001_A.13.1.1
+    - HITRUST
+    - HITRUST_CSF
+    - HITRUST_CSF_09.aa
+    - HITRUST_CSF_09.af
+    - CIS
+    - CIS_AWS
+    - CIS_AWS-1.3.0
+    - CIS_AWS-1.3.0_1.2
+    - AWS_FSBP
+    - AWS_FSBP_s3.1
+    - AWS_FSBP_s3.8
+    - AWS_WAF
+    - AWS_WAF_SEC-8
+    - AWS_WAF_REL-10
+  source: aws_cloudtrail
+
+- rule: Delete Bucket Replication
+  desc: Detect deletion of the replication configuration from the bucket.
+  condition:
+    aws.eventName="DeleteBucketReplication" and not aws.errorCode exists
+  output:
+    The replication configuration has been deleted from the bucket.
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     bucket name=%jevt.value[/requestParameters/bucketName])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_S3
+    - MITRE
+    - MITRE_T1070_indicator_removal_on_host
+    - MITRE_TA0005_defense_evasion
+    - AWS_WAF
+    - AWS_WAF_SEC-1
+  source: aws_cloudtrail
+
+- rule: Read Object in Watched Bucket
+  desc: Detect a Read operation on objects in watched buckets.
+  condition:
+    not jevt.value[/errorCode] exists
+    and jevt.value[/eventName]="GetObject"
+    and jevt.value[/requestParameters/bucketName] in (watched_buckets)
+  output:
+    Detected a Read operation on objects in bucket on watchlist
+    (requesting user=%jevt.value[/userIdentity/arn],
+     requesting IP=%jevt.value[/sourceIPAddress],
+     AWS region=%jevt.value[/awsRegion],
+     bucket name=%jevt.value[/requestParameters/bucketName],
+     object key=%jevt.value[/requestParameters/key])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_S3
+  source: aws_cloudtrail
+
+- rule: Read Object through AWSSupportServiceRolePolicy Assumed Role
+  desc: Detect a Read operation on objects in bucket through the AWSSupportServiceRolePolicy Assumed Role.
+  condition:
+    not aws.errorCode exists
+    and aws.eventName="GetObject"
+    and jevt.value[/userIdentity/type]="AssumedRole"
+    and jevt.value[/userIdentity/arn]="arn:aws:iam::aws:policy/aws-service-role/AWSSupportServiceRolePolicy"
+  output:
+    Detect a Read operation on objects in bucket through the AWSSupportServiceRolePolicy Assumed Role
+    (principal=%jevt.value[/userIdentity/principalId],
+     assumed role=%jevt.value[/userIdentity/arn],
+     requesting IP=%jevt.value[/sourceIPAddress],
+     AWS region=%jevt.value[/awsRegion],
+     bucket name=%jevt.value[/requestParameters/bucketName],
+     object key=%jevt.value[/requestParameters/key])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_S3
+  source: aws_cloudtrail
+
+- rule: List Buckets
+  desc: Detect listing of all S3 buckets.
+  condition:
+    aws.eventName="ListBuckets" and not aws.errorCode exists
+  exceptions:
+  - name: user_region
+    fields: [aws.user, aws.region]
+  output:
+    A list of all S3 buckets has been requested.
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     host=%jevt.value[/requestParameters/Host])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_S3
+    - MITRE
+    - MITRE_T1083_file_and_directory_discovery
+    - MITRE_TA0007_discovery
+  source: aws_cloudtrail
+
+- rule: Put Bucket ACL
+  desc: Detect setting the permissions on an existing bucket using access control lists.
+  condition:
+    aws.eventName="PutBucketAcl" and not aws.errorCode exists
+  output:
+    The permissions on an existing bucket have been set using access control lists.
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     bucket name=%jevt.value[/requestParameters/bucketName])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_S3
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.9.1.2
+    - MITRE
+    - MITRE_T1070_indicator_removal_on_host
+    - MITRE_TA0005_defense_evasion
+    - AWS_WAF
+    - AWS_WAF_SEC-8
+    - AWS_WAF_REL-10
+  source: aws_cloudtrail
+
+- rule: Put Bucket CORS
+  desc: Detect setting the cors configuration for a bucket.
+  condition:
+    aws.eventName="PutBucketCors" and not aws.errorCode exists
+  output:
+    The cors configuration for a bucket has been set.
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     bucket name=%jevt.value[/requestParameters/bucketName])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_S3
+    - SOC2
+    - SOC2_CC6.7
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.9.1.2
+    - MITRE
+    - MITRE_T1070_indicator_removal_on_host
+    - MITRE_TA0005_defense_evasion
+    - AWS_WAF
+    - AWS_WAF_SEC-8
+    - AWS_WAF_REL-10
+  source: aws_cloudtrail
+
+- rule: Put Bucket Lifecycle
+  desc: Detect creation or modification of a lifecycle configuration for the bucket [DEPRECATED use `Put Bucket Lifecycle Configuration` instead].
+  condition:
+    aws.eventName="PutBucketLifecycle" and not aws.errorCode exists
+  output:
+    A lifecycle configuration has been created or replaced for the bucket.
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     bucket name=%jevt.value[/requestParameters/bucketName])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_S3
+    - MITRE
+    - MITRE_T1070_indicator_removal_on_host
+    - MITRE_TA0005_defense_evasion
+  source: aws_cloudtrail
+
+- rule: Put Bucket Policy
+  desc: Detect applying an Amazon S3 bucket policy to an Amazon S3 bucket.
+  condition:
+    aws.eventName="PutBucketPolicy" and not aws.errorCode exists
+  output:
+    An Amazon S3 bucket policy has been applied to an Amazon S3 bucket.
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     bucket name=%jevt.value[/requestParameters/bucketName],
+     policy=%jevt.value[/requestParameters/policy])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_S3
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.9.1.2
+    - MITRE
+    - MITRE_T1070_indicator_removal_on_host
+    - MITRE_TA0005_defense_evasion
+    - AWS_WAF
+    - AWS_WAF_SEC-8
+  source: aws_cloudtrail
+
+- rule: Put Bucket Replication
+  desc: Detect creation of a replication configuration or the replacement of an existing one..
+  condition:
+    aws.eventName="PutBucketReplication" and not aws.errorCode exists
+  output:
+    A new replication configuration has been created, or an existing one has been replaced.
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     bucket name=%jevt.value[/requestParameters/bucketName],
+     destination bucket arn=%jevt.value[/requestParameters/ReplicationConfiguration/Rule/Destination/Bucket])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_S3
+    - MITRE
+    - MITRE_T1070_indicator_removal_on_host
+    - MITRE_TA0005_defense_evasion
+  source: aws_cloudtrail
+
+- rule: Put Object in Watched Bucket
+  desc: Detect a Put operation on objects in watched buckets.
+  condition:
+    not jevt.value[/errorCode] exists
+    and jevt.value[/eventName]="PutObject"
+    and jevt.value[/requestParameters/bucketName] in (watched_buckets)
+  output:
+    Detected a Put operation on objects in bucket on watchlist
+    (requesting user=%jevt.value[/userIdentity/arn],
+     requesting IP=%jevt.value[/sourceIPAddress],
+     AWS region=%jevt.value[/awsRegion],
+     bucket name=%jevt.value[/requestParameters/bucketName],
+     object key=%jevt.value[/requestParameters/key])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_S3
+  source: aws_cloudtrail
+
+- rule: Create SageMaker Notebook Instance with Direct Internet Access
+  desc: Detect creation of a SageMaker notebook instance with direct internet access.
+  condition:
+    aws.eventName="CreateNotebookInstance" and not aws.errorCode exists and
+    jevt.value[/requestParameters/directInternetAccess]="Enabled"
+  output:
+    A SageMaker notebook instance with direct internet access has been created
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     notebook instance name=%jevt.value[/requestParameters/notebookInstanceName])
+  priority: ERROR
+  tags:
+    - Cloud
+    - AWS
+    - AWS_SageMaker
+    - SOC2
+    - SOC2_CC8.1
+    - PCI
+    - PCI_DSS
+    - PCI_DSS_1.2.1
+    - PCI_DSS_1.3.1
+    - PCI_DSS_1.3.2
+    - PCI_DSS_1.3.4
+    - PCI_DSS_1.3.6
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.13.1.1
+    - AWS_FSBP
+    - AWS_FSBP_sagemaker.1
+  source: aws_cloudtrail
+
+- rule: Get Secret Value
+  desc: Detect retrieval of the contents of the encrypted fields SecretString or SecretBinary from the specified version of a secret
+    - whichever contains content.
+  condition:
+    aws.eventName="GetSecretValue" and not aws.errorCode exists
+  output:
+    The contents of the encrypted fields SecretString or SecretBinary from the specified version of a secret have been retrieved.
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     secret id=%jevt.value[/requestParameters/secretId])
+  exceptions:
+  - name: user_secreid
+    fields: [aws.user, "jevt.value[/requestParameters/secretId]", aws.region]
+  - name: user_region
+    fields: [aws.user, aws.region]
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_SecretsManager
+    - MITRE
+    - MITRE_T1528_steal_application_access_token
+    - MITRE_TA0006_credential_access
+    - AWS_WAF
+    - AWS_WAF_SEC-1
+  source: aws_cloudtrail
+
+- rule: Batch Disable Standards
+  desc: Detect disabling of the standards specified by the provided StandardsSubscriptionArns.
+  condition:
+    aws.eventName="BatchDisableStandards" and not aws.errorCode exists
+    and aws.eventSource="securityhub.amazonaws.com"
+  output:
+    The standards specified by the provided StandardsSubscriptionArns have been disabled.
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     standards subscription arns=%jevt.value[/requestParameters/StandardsSubscriptionArns/0])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_SecurityHub
+    - SOC2
+    - SOC2_CC7.2
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.12.1.2
+    - AWS
+    - AWS_WAF
+    - AWS_WAF_SEC-1
+  source: aws_cloudtrail
+
+- rule: Delete Action Target
+  desc: Detect deletion of a custom action target from Security Hub.
+  condition:
+    aws.eventName="DeleteActionTarget" and not aws.errorCode exists
+  output:
+    A custom action target from Security Hub has been updated.
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     action target arn=%jevt.value[/requestParameters/ActionTargetArn])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_SecurityHub
+    - SOC2
+    - SOC2_CC7.2
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.12.1.2
+    - MITRE
+    - MITRE_T1562_impair_defenses
+    - MITRE_T1562.001_disable_or_modify_tools
+    - MITRE_TA0005_defense_evasion
+  source: aws_cloudtrail
+
+- rule: Security Hub Delete Members
+  desc: Detect deletion the specified member accounts from Security Hub.
+  condition:
+    aws.eventName="DeleteMembers" and not aws.errorCode exists
+    and aws.eventSource="securityhub.amazonaws.com"
+  output:
+    The specified member accounts from Security Hub have been deleted.
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     accout ids=%jevt.value[/requestParameters/AccountIds/0])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_SecurityHub
+    - SOC2
+    - SOC2_CC7.2
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.12.1.2
+    - ISO_27001_A.16.1.2
+    - MITRE
+    - MITRE_T1562_impair_defenses
+    - MITRE_T1562.001_disable_or_modify_tools
+    - MITRE_TA0005_defense_evasion
+  source: aws_cloudtrail
+
+- rule: Disable Security Hub
+  desc: Detect disabling the Security Hub in the current region.
+  condition:
+    aws.eventName="DisableSecurityHub" and not aws.errorCode exists
+  output:
+    Security Hub has been disabled for the current region.
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region)
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_SecurityHub
+    - SOC2
+    - SOC2_CC7.2
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.12.1.2
+    - MITRE
+    - MITRE_T1562_impair_defenses
+    - MITRE_T1562.001_disable_or_modify_tools
+    - MITRE_TA0005_defense_evasion
+    - AWS_WAF
+    - AWS_WAF_SEC-1
+  source: aws_cloudtrail
+
+- rule: Disable Import Findings for Product
+  desc: Detect disabling of the integration of the specified product with Security Hub.
+  condition:
+    aws.eventName="DisableImportFindingsForProduct" and not aws.errorCode exists
+    and aws.eventSource="securityhub.amazonaws.com"
+  output:
+    The integration of the specified product with Security Hub has been disabled.
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     product subscription arn=%jevt.value[/requestParameters/ProductSubscriptionArn])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_SecurityHub
+    - SOC2
+    - SOC2_CC7.2
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.12.1.2
+    - MITRE
+    - MITRE_T1562_impair_defenses
+    - MITRE_T1562.001_disable_or_modify_tools
+    - MITRE_TA0005_defense_evasion
+  source: aws_cloudtrail
+
+- rule: Security Hub Disassociate From Master Account
+  desc: Detect disassociation of the current Security Hub member account from the associated master account.
+  condition:
+    aws.eventName="DisassociateFromMasterAccount" and not aws.errorCode exists
+    and aws.eventSource="securityhub.amazonaws.com"
+  output:
+    The current Security Hub member account has been disassociated from the associated master account.
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region)
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_SecurityHub
+    - SOC2
+    - SOC2_CC7.2
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.12.1.2
+    - MITRE
+    - MITRE_T1562_impair_defenses
+    - MITRE_T1562.001_disable_or_modify_tools
+    - MITRE_TA0005_defense_evasion
+    - AWS_WAF
+    - AWS_WAF_SEC-1
+  source: aws_cloudtrail
+
+- rule: Security Hub Disassociate Members
+  desc: Detect disassociation of the current Security Hub member account from the associated master account.
+  condition:
+    aws.eventName="DisassociateMembers" and not aws.errorCode exists
+    and aws.eventSource="securityhub.amazonaws.com"
+  output:
+    The current Security Hub member account has been disassociated from the associated master account.
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     account ids=%jevt.value[/requestParameters/AccountIds/0])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_SecurityHub
+    - SOC2
+    - SOC2_CC7.2
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.12.1.2
+    - ISO_27001_A.16.1.2
+    - MITRE
+    - MITRE_T1562_impair_defenses
+    - MITRE_T1562.001_disable_or_modify_tools
+    - MITRE_TA0005_defense_evasion
+    - AWS_WAF
+    - AWS_WAF_SEC-1
+  source: aws_cloudtrail
+
+- rule: Update Action Target
+  desc: Detect updating the name and description of a custom action target in Security Hub.
+  condition:
+    aws.eventName="UpdateActionTarget" and not aws.errorCode exists
+  output:
+    The name and description of a custom action target in Security Hub have been updated.
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     action target arn=%jevt.value[/requestParameters/ActionTargetArn])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_SecurityHub
+    - SOC2
+    - SOC2_CC7.2
+    - MITRE
+    - MITRE_T1562_impair_defenses
+    - MITRE_T1562.001_disable_or_modify_tools
+    - MITRE_TA0005_defense_evasion
+  source: aws_cloudtrail
+
+- rule: Update Standards Control
+  desc: Detect enabling or disabling of a standard control.
+  condition:
+    aws.eventName="UpdateStandardsControl" and not aws.errorCode exists
+  output:
+    A standard control has been enabled or disabled.
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     standards control arn=%jevt.value[/requestParameters/StandardsControlArn])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_SecurityHub
+    - SOC2
+    - SOC2_CC7.2
+    - MITRE
+    - MITRE_T1562_impair_defenses
+    - MITRE_T1562.001_disable_or_modify_tools
+    - MITRE_TA0005_defense_evasion
+  source: aws_cloudtrail
+
+- rule: Accept VPC Peering Connection
+  desc: Detect accepting an VPC peering connection.
+  condition:
+    aws.eventName="AcceptVpcPeeringConnection" and not aws.errorCode exists
+  output:
+    A VPC peering connection has been accepted
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region)
+  priority: INFO
+  tags:
+    - Cloud
+    - AWS
+    - AWS_VPC
+    - SOC2
+    - SOC2_CC6.1
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.9.1.2
+    - GDPR
+    - GDPR_32.1
+    - GDPR_32.2
+    - MITRE
+    - MITRE_T1562_impair_defenses
+    - MITRE_T1562.001_disable_or_modify_tools
+    - MITRE_TA0003_persistence
+    - MITRE_TA0005_defense_evasion
+    - AWS_WAF
+    - AWS_WAF_REL-10
+  source: aws_cloudtrail
+
+- rule: Attach Internet Gateway
+  desc: Detect attaching an internet gateway.
+  condition:
+    aws.eventName="AttachInternetGateway" and not aws.errorCode exists
+  output:
+    An internet gateway has been attached
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region)
+  priority: ERROR
+  tags:
+    - Cloud
+    - AWS
+    - AWS_VPC
+    - SOC2
+    - SOC2_CC6.1
+    - GDPR
+    - GDPR_32.1
+    - GDPR_32.2
+    - MITRE
+    - MITRE_T1562_impair_defenses
+    - MITRE_T1562.001_disable_or_modify_tools
+    - MITRE_TA0003_persistence
+    - MITRE_TA0005_defense_evasion
+    - AWS_WAF
+    - AWS_WAF_REL-10
+  source: aws_cloudtrail
+
+- rule: Create a Network ACL
+  desc: Detect creating a network ACL.
+  condition:
+    aws.eventName="CreateNetworkAcl" and not aws.errorCode exists
+  output:
+    A network ACL has been created
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region)
+  priority: INFO
+  tags:
+    - Cloud
+    - AWS
+    - AWS_VPC
+    - SOC2
+    - SOC2_CC6.6
+    - MITRE
+    - MITRE_T1562_impair_defenses
+    - MITRE_T1562.001_disable_or_modify_tools
+    - MITRE_TA0003_persistence
+    - MITRE_TA0005_defense_evasion
+    - AWS_WAF
+    - AWS_WAF_SEC-8
+    - AWS_WAF_REL-10
+  source: aws_cloudtrail
+
+- rule: Create a Network ACL Entry
+  desc: Detect creating a network ACL entry.
+  condition:
+    aws.eventName="CreateNetworkAclEntry" and not aws.errorCode exists
+  output:
+    A network ACL entry has been created.
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     network acl id=%jevt.value[/requestParameters/networkAclId],
+     rule number=%jevt.value[/requestParameters/ruleNumber])
+  priority: INFO
+  tags:
+    - Cloud
+    - AWS
+    - AWS_VPC
+    - SOC2
+    - SOC2_CC6.6
+    - MITRE
+    - MITRE_T1562_impair_defenses
+    - MITRE_T1562.001_disable_or_modify_tools
+    - MITRE_TA0003_persistence
+    - MITRE_TA0005_defense_evasion
+    - AWS_WAF
+    - AWS_WAF_SEC-8
+    - AWS_WAF_REL-10
+  source: aws_cloudtrail
+
+- rule: Create a Network ACL Entry Allowing Ingress Open to the World
+  desc: Detect creation of access control list entry allowing ingress open to the world.
+  condition: >
+    aws.eventName="CreateNetworkAclEntry" and not aws.errorCode exists and
+    (
+      not (
+        jevt.value[/requestParameters/portRange/from]=80 and
+        jevt.value[/requestParameters/portRange/to]=80
+      ) and
+      not (
+        jevt.value[/requestParameters/portRange/from]=443 and
+        jevt.value[/requestParameters/portRange/to]=443
+      ) and
+      (
+        jevt.value[/requestParameters/cidrBlock]="0.0.0.0/0" or
+        jevt.value[/requestParameters/ipv6CidrBlock]="::/0"
+      ) and
+      jevt.value[/requestParameters/egress]="false" and
+      jevt.value[/requestParameters/ruleAction]="allow"
+    )
+  output:
+    Detected creation of ACL entry allowing ingress open to the world
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     network acl id=%jevt.value[/requestParameters/networkAclId],
+     rule number=%jevt.value[/requestParameters/ruleNumber],
+     from port=%jevt.value[/requestParameters/portRange/from],
+     to port=%jevt.value[/requestParameters/portRange/to])
+  priority: ERROR
+  tags:
+    - Cloud
+    - AWS
+    - AWS_VPC
+    - MITRE
+    - MITRE_T1562_impair_defenses
+    - MITRE_T1562.001_disable_or_modify_tools
+    - MITRE_TA0003_persistence
+    - MITRE_TA0005_defense_evasion
+  source: aws_cloudtrail
+
+- rule: Create VPC Route
+  desc: Detect creating an VPC route.
+  condition:
+    aws.eventName="CreateRouteTable" and not aws.errorCode exists
+  output:
+    A VPC route has been created
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region)
+  priority: ERROR
+  tags:
+    - Cloud
+    - AWS
+    - AWS_VPC
+    - SOC2
+    - SOC2_CC6.1
+    - GDPR
+    - GDPR_32.1
+    - GDPR_32.2
+    - MITRE
+    - MITRE_T1562_impair_defenses
+    - MITRE_T1562.001_disable_or_modify_tools
+    - MITRE_TA0003_persistence
+    - MITRE_TA0005_defense_evasion
+    - AWS_WAF
+    - AWS_WAF_REL-10
+  source: aws_cloudtrail
+
+- rule: Create VPC Peering Connection
+  desc: Detect creating an VPC peering connection.
+  condition:
+    aws.eventName="CreateVpcPeeringConnection" and not aws.errorCode exists
+  output:
+    A VPC peering connection has been created
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region)
+  priority: INFO
+  tags:
+    - Cloud
+    - AWS
+    - AWS_VPC
+    - SOC2
+    - SOC2_CC6.1
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.9.1.2
+    - GDPR
+    - GDPR_32.1
+    - GDPR_32.2
+    - MITRE
+    - MITRE_T1562_impair_defenses
+    - MITRE_T1562.001_disable_or_modify_tools
+    - MITRE_TA0003_persistence
+    - MITRE_TA0005_defense_evasion
+    - AWS_WAF
+    - AWS_WAF_REL-10
+  source: aws_cloudtrail
+
+- rule: Create VPC with Default Security Group
+  desc: Detect creation of a new VPC with default security group.
+  condition:
+    aws.eventName="CreateVpc" and not aws.errorCode exists
+  output:
+    A new VPC with default security group allowing outbound traffic has been created
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     new VPC created=%jevt.value[/responseElements/vpc/vpcId])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_VPC
+    - SOC2
+    - SOC2_CC6.6
+    - PCI
+    - PCI_DSS
+    - PCI_DSS_1.2.1
+    - PCI_DSS_1.3.4
+    - PCI_DSS_2.1
+    - CIS
+    - CIS_AWS
+    - CIS_AWS-1.3.0
+    - CIS_AWS-1.3.0_5.3
+    - AWS_FSBP
+    - AWS_FSBP_ec2.2
+    - AWS_WAF
+    - AWS_WAF_SEC-8
+    - AWS_WAF_REL-10
+  source: aws_cloudtrail
+
+- rule: Create VPC with No Flow Log
+  desc: Detect creation of a new VPC with no flow log.
+  condition:
+    aws.eventName="CreateVpc" and not aws.errorCode exists
+  output:
+    A new VPC with no flow log has been created
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     new VPC created=%jevt.value[/responseElements/vpc/vpcId])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_VPC
+    - SOC2
+    - SOC2_CC6.1
+    - PCI
+    - PCI_DSS
+    - PCI_DSS_10.3.3
+    - PCI_DSS_10.3.4
+    - PCI_DSS_10.3.5
+    - PCI_DSS_10.3.6
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.16.1.7
+    - GDPR
+    - GDPR_25.1
+    - GDPR_25.2
+    - GDPR_25.3
+    - GDPR_32.1
+    - GDPR_32.2
+    - CIS
+    - CIS_AWS
+    - CIS_AWS-1.3.0
+    - CIS_AWS-1.3.0_3.9
+    - AWS_FSBP
+    - AWS_FSBP_ec2.6
+    - AWS_WAF
+    - AWS_WAF_SEC-1
+  source: aws_cloudtrail
+
+- rule: Delete VPC Flow Log
+  desc: Detect deleting VPC flow log.
+  condition:
+    aws.eventName="DeleteFlowLogs" and not aws.errorCode exists
+  output:
+    Flow log for a VPC has been deleted
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     flow log id=%jevt.value[/requestParameters/DeleteFlowLogsRequest/FlowLogId/content])
+  priority: WARNING
+  tags:
+    - Cloud
+    - AWS
+    - AWS_VPC
+    - SOC2
+    - SOC2_CC6.1
+    - PCI
+    - PCI_DSS
+    - PCI_DSS_10.3.3
+    - PCI_DSS_10.3.4
+    - PCI_DSS_10.3.5
+    - PCI_DSS_10.3.6
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.16.1.7
+    - GDPR
+    - GDPR_25.1
+    - GDPR_25.2
+    - GDPR_25.3
+    - GDPR_32.1
+    - GDPR_32.2
+    - MITRE
+    - MITRE_T1027_obfuscated_files_or_information
+    - MITRE_T1027.005_indicator_removal_from_tools
+    - MITRE_TA0005_defense_evasion
+    - AWS_FSBP
+    - AWS_FSBP_ec2.6
+    - AWS_WAF
+    - AWS_WAF_SEC-1
+  source: aws_cloudtrail
+
+- rule: Delete a Network ACL
+  desc: Detect deleting a network ACL.
+  condition:
+    aws.eventName="DeleteNetworkAcl" and not aws.errorCode exists
+  output:
+    A network ACL has been deleted.
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     network acl id=%jevt.value[/requestParameters/networkAclId])
+  priority: INFO
+  tags:
+    - Cloud
+    - AWS
+    - AWS_VPC
+    - SOC2
+    - SOC2_CC6.1
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.9.1.2
+    - GDPR
+    - GDPR_32.1
+    - GDPR_32.2
+    - MITRE
+    - MITRE_T1562_impair_defenses
+    - MITRE_T1562.001_disable_or_modify_tools
+    - MITRE_TA0003_persistence
+    - MITRE_TA0005_defense_evasion
+    - AWS_WAF
+    - AWS_WAF_SEC-8
+    - AWS_WAF_REL-10
+  source: aws_cloudtrail
+
+- rule: Delete a Network ACL Entry
+  desc: Detect deletion of a network ACL entry.
+  condition:
+    aws.eventName="DeleteNetworkAclEntry" and not aws.errorCode exists
+  output:
+    A network ACL entry has been deleted.
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     network acl id=%jevt.value[/requestParameters/networkAclId],
+     rule number=%jevt.value[/requestParameters/ruleNumber])
+  priority: INFO
+  tags:
+    - Cloud
+    - AWS
+    - AWS_VPC
+    - SOC2
+    - SOC2_CC6.1
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.9.1.2
+    - GDPR
+    - GDPR_32.1
+    - GDPR_32.2
+    - MITRE
+    - MITRE_T1562_impair_defenses
+    - MITRE_T1562.001_disable_or_modify_tools
+    - MITRE_TA0003_persistence
+    - MITRE_TA0005_defense_evasion
+    - AWS_WAF
+    - AWS_WAF_SEC-8
+    - AWS_WAF_REL-10
+  source: aws_cloudtrail
+
+- rule: Replace a Network ACL Association
+  desc: Detect replacement of a network ACL association.
+  condition:
+    aws.eventName="ReplaceNetworkAclAssociation" and not aws.errorCode exists
+  output:
+    A network ACL entry has been replaced.
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     association id=%jevt.value[/requestParameters/associationId],
+     network acl id=%jevt.value[/requestParameters/networkAclId])
+  priority: INFO
+  tags:
+    - Cloud
+    - AWS
+    - AWS_VPC
+    - SOC2
+    - SOC2_CC6.1
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.9.1.2
+    - GDPR
+    - GDPR_32.1
+    - GDPR_32.2
+    - MITRE
+    - MITRE_T1562_impair_defenses
+    - MITRE_T1562.001_disable_or_modify_tools
+    - MITRE_TA0003_persistence
+    - MITRE_TA0005_defense_evasion
+    - AWS_WAF
+    - AWS_WAF_REL-10
+  source: aws_cloudtrail
+
+- rule: Replace a Network ACL Entry
+  desc: Detect replacement of a network ACL entry.
+  condition:
+    aws.eventName="ReplaceNetworkAclEntry" and not aws.errorCode exists
+  output:
+    A network ACL entry has been replaced.
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region,
+     arn=%jevt.value[/userIdentity/arn],
+     network acl id=%jevt.value[/requestParameters/networkAclId],
+     rule number=%jevt.value[/requestParameters/ruleNumber])
+  priority: INFO
+  tags:
+    - Cloud
+    - AWS
+    - AWS_VPC
+    - SOC2
+    - SOC2_CC6.1
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.9.1.2
+    - GDPR
+    - GDPR_32.1
+    - GDPR_32.2
+    - MITRE
+    - MITRE_T1562_impair_defenses
+    - MITRE_T1562.001_disable_or_modify_tools
+    - MITRE_TA0003_persistence
+    - MITRE_TA0005_defense_evasion
+    - AWS_WAF
+    - AWS_WAF_REL-10
+  source: aws_cloudtrail
+
+- rule: Delete WAF Rule Group
+  desc: Detect deleting a WAF rule group.
+  condition:
+    aws.eventName="DeleteRuleGroup" and not aws.errorCode exists
+  output:
+    A WAF rule group has been deleted
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region)
+  priority: ERROR
+  tags:
+    - Cloud
+    - AWS
+    - AWS_WAF
+    - SOC2
+    - SOC2_CC6.1
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.9.1.2
+    - GDPR
+    - GDPR_32.1
+    - GDPR_32.2
+    - MITRE
+    - MITRE_T1562_impair_defenses
+    - MITRE_T1562.001_disable_or_modify_tools
+    - MITRE_TA0005_defense_evasion
+    - AWS_WAF_SEC-8
+    - AWS_WAF_REL-10
+  source: aws_cloudtrail
+
+- rule: Delete Web ACL
+  desc: Detect deleting a web ACL.
+  condition:
+    aws.eventName="DeleteWebACL" and not aws.errorCode exists
+  output:
+    A web ACL has been deleted
+    (requesting user=%aws.user,
+     requesting IP=%aws.sourceIP,
+     AWS region=%aws.region)
+  priority: ERROR
+  tags:
+    - Cloud
+    - AWS
+    - AWS_WAF
+    - SOC2
+    - SOC2_CC6.1
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.9.1.2
+    - GDPR
+    - GDPR_32.1
+    - GDPR_32.2
+    - MITRE
+    - MITRE_T1562_impair_defenses
+    - MITRE_T1562.001_disable_or_modify_tools
+    - MITRE_TA0005_defense_evasion
+    - AWS_WAF_SEC-8
+    - AWS_WAF_REL-10
+  source: aws_cloudtrail

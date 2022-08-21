@@ -1,0 +1,2161 @@
+- required_engine_version: 8
+
+- rule: GCP Create API Keys for a Project
+  desc: Detect creation of API keys for a project.
+  condition:
+    gcp.serviceName="apikeys.googleapis.com" and
+    gcp.methodName="google.api.apikeys.v1.ApiKeys.CreateApiKey"
+  output:
+    An API key for a project has been created
+    (requesting user=%gcp.user,
+     requesting IP=%gcp.callerIP,
+     project id=%jevt.value[/protoPayload/request/projectId],
+     key id=%jevt.value[/protoPayload/response/keyId])
+  priority: WARNING
+  tags:
+    - Cloud
+    - GCP
+    - GCP_APIKeys
+    - CIS
+    - CIS_GCP
+    - CIS_GCP_1.12
+  source: gcp_auditlog
+
+- rule: GCP App Engine Firewall Rule Created
+  desc: Detects the unspecified creation of an App Engine Firewall rule.
+  condition:
+    gcp.serviceName="appengine.googleapis.com" and
+    gcp.methodName="google.appengine.v1.Firewall.CreateIngressRule" and
+    jevt.value[/protoPayload/status] = {}
+  output:
+    An App Engine Firewall rule has been created
+    (requesting user=%gcp.user,
+     requesting IP=%gcp.callerIP,
+     region=%jevt.value[/protoPayload/resourceLocation/currentLocations/0],
+     resource=%jevt.value[/protoPayload/resourceName])
+  priority: WARNING
+  tags:
+    - Cloud
+    - GCP
+    - GCP_AppEngine
+    - GCP_Firewall
+  source: gcp_auditlog
+
+- rule: GCP App Engine Firewall Rule Deleted
+  desc: Detects the deletion of an App Engine Firewall rule.
+  condition:
+    gcp.serviceName="appengine.googleapis.com" and
+    gcp.methodName="google.appengine.v1.Firewall.DeleteIngressRule" and
+    jevt.value[/protoPayload/status] = {}
+  output:
+    An App Engine Firewall rule has been deleted
+    (requesting user=%gcp.user,
+     requesting IP=%gcp.callerIP,
+     region=%jevt.value[/protoPayload/resourceLocation/currentLocations/0],
+     resource=%jevt.value[/protoPayload/resourceName])
+  priority: WARNING
+  tags:
+    - Cloud
+    - GCP
+    - GCP_AppEngine
+    - GCP_Firewall
+  source: gcp_auditlog
+
+- rule: GCP App Engine Firewall Rule Updated
+  desc: Detects unspecified updates to an App Engine Firewall rule.
+  condition:
+    gcp.serviceName="appengine.googleapis.com" and
+    gcp.methodName="google.appengine.v1.Firewall.UpdateIngressRule" and
+    jevt.value[/protoPayload/status] = {}
+  output:
+    An App Engine Firewall rule has been updated
+    (requesting user=%gcp.user,
+     requesting IP=%gcp.callerIP,
+     region=%jevt.value[/protoPayload/resourceLocation/currentLocations/0],
+     resource=%jevt.value[/protoPayload/resourceName])
+  priority: WARNING
+  tags:
+    - Cloud
+    - GCP
+    - GCP_AppEngine
+    - GCP_Firewall
+  source: gcp_auditlog
+
+############
+# PROJECTS #
+############
+
+# PROJECTS
+- list: gcp_bp_pci_resources_google_projects
+  items:
+  - "network"
+  - "in_scope"
+  - "out_of_scope"
+  - "management"
+
+# PROJECT SERVICES
+- list: gcp_bp_pci_resource_google_project_services
+  items:
+  - "container_api_network"
+  - "container_api_in_scope"
+  - "container_api_out_of_scope"
+  - "cloudtrace_api_out_of_scope"
+  - "monitoring_api_out_of_scope"
+  - "cloudtrace_api_in_scope"
+  - "monitoring_api_in_scope"
+  - "dns_api_network"
+
+# PROJECT IAM BINDINGS
+- list: gcp_bp_pci_resource_google_project_iam_bindings
+  items:
+  - "host-service-agent-for-gke-service-accounts"
+
+# PROJECT IAM CUSTOM ROLE TITLES
+- list: gcp_bp_pci_resource_google_project_iam_custom_role_titles
+  items: ["Firewall Admin"]
+
+# PROJECT IAM MEMBERS
+- list: gcp_bp_pci_resource_google_project_iam_members
+  items:
+  - "add_firewall_admin_to_in_scope_gke_service_account"
+  - "add_firewall_admin_to_out_of_scope_gke_service_account"
+
+###########
+# COMPUTE #
+###########
+
+# COMPUTE SECURITY POLICIES
+- list: gcp_bp_pci_resource_google_compute_security_policies
+  items:
+  - "security-policy-1"
+
+# COMPUTE NETWORKS
+- list: gcp_bp_pci_resource_google_compute_networks
+  items: ["shared-vpc"]
+
+# COMPUTE SUB-NETWORKS
+- list: gcp_bp_pci_resource_google_compute_subnetworks
+  items: ["in-scope", "out-of-scope"]
+
+# COMPUTE SHARED VPC HOST PROJECTS
+- list: gcp_bp_pci_resource_google_compute_shared_vpc_host_projects
+  items:
+  - "network"
+
+# COMPUTE SHARED VPC SERVICE PROJECTS
+- list: gcp_bp_pci_resource_google_compute_shared_vpc_service_projects
+  items:
+  - "in-scope"
+  - "out-of-scope"
+
+# COMPUTE SUB-NETWORK IAM POLICIES
+- list: gcp_bp_pci_resource_google_compute_subnetwork_iam_policies
+  items:
+  - "in-scope"
+  - "out-of-scope"
+
+# COMPUTE ROUTERS
+- list: gcp_bp_pci_resource_google_compute_routers
+  items: ["router"]
+
+# COMPUTE ROUTER NATs
+- list: gcp_bp_pci_resource_google_compute_router_nats
+  items:
+  - "nat"
+
+# COMPUTE GLOBAL ADDRESSES
+- list: gcp_bp_pci_resource_google_compute_global_addresses
+  items:
+  - "frontend-ext-ip"
+
+# COMPUTE FIREWALLS
+- list: gcp_bp_pci_resource_google_compute_firewalls
+  items:
+  - "from_out_of_scope_to_in_scope_internal_load_balancer"
+
+# FOLDER ORGANIZATION POLICIES
+- list: gcp_bp_pci_resource_google_folder_organization_policies
+  items:
+  - "external_ip_policy"
+  - "domain_restricted_sharing_policy"
+  - "trusted_image_policy"
+
+#######
+# DNS #
+#######
+
+# DNS MANAGED ZONES
+- list: gcp_bp_pci_resource_google_dns_managed_zones
+  items: ["frontend"]
+
+# DNS RECORD SETS
+- list: gcp_bp_pci_resource_google_dns_record_sets
+  items:
+  - "frontend"
+
+############
+# CLUSTERS #
+############
+
+# CLUSTERS
+- list: gcp_bp_pci_resource_google_container_clusters
+  items: ["in-scope", "out-of-scope"]
+
+# CONTAINER NODE POOLS
+- list: gcp_bp_pci_resource_google_container_node_pools
+  items: ["in-scope-node-pool", "out-of-scope-node-pool"]
+
+###############################################################################
+- rule: GCP Delete Resources from the PCI Blueprint Environment
+  desc: Detect the deletion of resources from the blueprint environment.
+  condition:
+    (gcp.methodName="google.container.v1.ClusterManager.DeleteCluster"
+    and jevt.value[/resource/labels/cluster_name] in (gcp_bp_pci_resource_google_container_clusters))
+    or
+    (gcp.methodName="google.container.v1.ClusterManager.DeleteNodePool"
+    and jevt.value[/resource/labels/nodepool_name] in (gcp_bp_pci_resource_google_container_node_pools))
+    or
+    (gcp.methodName="google.iam.admin.v1.DeleteRole"
+    and jevt.value[/protoPayload/response/title] in (gcp_bp_pci_resource_google_project_iam_custom_role_titles))
+    or
+    (gcp.methodName="v1.compute.subnetworks.delete"
+    and jevt.value[/resource/labels/subnetwork_name] in (gcp_bp_pci_resource_google_compute_subnetworks))
+    or
+    (gcp.methodName="v1.compute.networks.delete"
+    and jevt.value[/protoPayload/resourceName] endswith "/shared-vpc")
+    or
+    (gcp.methodName="v1.compute.routers.delete"
+    and jevt.value[/protoPayload/resourceName] endswith "/routers/router")
+    or
+    (gcp.methodName="dns.managedZones.delete"
+    and jevt.value[/resource/labels/zone_name] in (gcp_bp_pci_resource_google_dns_managed_zones))
+  output:
+    A PCI blueprint environment resource has been deleted
+    (requesting user=%gcp.user,
+     requesting IP=%gcp.callerIP,
+     region=%jevt.value[/protoPayload/resourceLocation/currentLocations/0],
+     resource=%jevt.value[/protoPayload/resourceName])
+  priority: CRITICAL
+  tags:
+    - Cloud
+    - GCP
+    - PCI_DSS
+  source: gcp_auditlog
+
+- rule: GCP Create Bucket
+  desc: Detect creation of a bucket.
+  condition:
+    gcp.methodName="storage.buckets.create" and
+    jevt.value[/protoPayload/status]={}
+  output:
+    A bucket has been created
+    (requesting user=%gcp.user,
+     requesting IP=%gcp.callerIP,
+     region=%jevt.value[/protoPayload/resourceLocation/currentLocations/0],
+     bucket=%jevt.value[/protoPayload/resourceName])
+  priority: WARNING
+  tags:
+    - Cloud
+    - GCP
+    - GCP_Storage_Buckets
+    - MITRE
+    - MITRE_T1074_data_staged
+    - MITRE_T1074.002_remote_data_staging
+    - MITRE_TA0009_collection
+  source: gcp_auditlog
+
+- rule: GCP Delete Bucket
+  desc: Detect deletion of a bucket.
+  condition:
+    gcp.methodName="storage.buckets.delete" and
+    jevt.value[/protoPayload/status]={}
+  output:
+    A bucket has been deleted
+    (requesting user=%gcp.user,
+     requesting IP=%gcp.callerIP,
+     region=%jevt.value[/protoPayload/resourceLocation/currentLocations/0],
+     bucket=%jevt.value[/protoPayload/resourceName])
+  priority: WARNING
+  tags:
+    - Cloud
+    - GCP
+    - GCP_Storage_Buckets
+  source: gcp_auditlog
+
+- rule: GCP List Buckets
+  desc: Detect listing of all storage buckets.
+  condition:
+    gcp.serviceName="storage.googleapis.com" and
+    gcp.methodName="storage.buckets.list" and
+    jevt.value[/protoPayload/status]={}
+  output:
+    A list of all storage buckets has been requested
+    (requesting user=%gcp.user,
+     requesting IP=%gcp.callerIP,
+     region=%jevt.value[/protoPayload/resourceLocation/currentLocations/0])
+  priority: WARNING
+  tags:
+    - Cloud
+    - GCP
+    - GCP_Storage_Buckets
+    - MITRE
+    - MITRE_T1083_file_and_directory_discovery
+    - MITRE_TA0007_discovery
+  source: gcp_auditlog
+
+- rule: GCP List Bucket Objects
+  desc: Detect listing of all objects in a bucket.
+  condition:
+    gcp.serviceName="storage.googleapis.com" and
+    gcp.methodName="storage.objects.list" and
+    jevt.value[/protoPayload/status]={}
+  output:
+    A list of all objects in a buckets has been requested
+    (requesting user=%gcp.user,
+     requesting IP=%gcp.callerIP,
+     region=%jevt.value[/protoPayload/resourceLocation/currentLocations/0],
+     bucket=%jevt.value[/protoPayload/resourceName])
+  priority: WARNING
+  tags:
+    - Cloud
+    - GCP
+    - GCP_Storage_Buckets
+    - MITRE
+    - MITRE_T1083_file_and_directory_discovery
+    - MITRE_TA0007_discovery
+  source: gcp_auditlog
+
+- rule: GCP Put Bucket ACL
+  desc: Detect setting the permissions on an existing bucket using access control lists.
+  condition:
+    gcp.serviceName="storage.googleapis.com" and
+    gcp.methodName="storage.buckets.update" and
+    jevt.value[/protoPayload/request/defaultObjectAcl/@type]="type.googleapis.com/google.iam.v1.Policy" and
+    jevt.value[/protoPayload/status]={}
+  output:
+    The permissions on an existing bucket have been set using access control lists
+    (requesting user=%gcp.user,
+     requesting IP=%gcp.callerIP,
+     region=%jevt.value[/protoPayload/resourceLocation/currentLocations/0],
+     bucket=%jevt.value[/protoPayload/resourceName])
+  priority: WARNING
+  tags:
+    - Cloud
+    - GCP
+    - GCP_Storage_Buckets
+    - PCI
+    - PCI_DSS
+    - PCI_DSS_1.1.5
+    - PCI_DSS_7.2.1
+    - NIST
+    - NIST_800-53
+    - NIST_800-53_AC-6(1)
+    - NIST_800-53_AC-6(2)
+    - NIST_800-53_AC-6(3)
+    - NIST_800-53_AC-6(5)
+    - NIST_800-53_AC-6(10)
+    - FedRAMP
+    - FedRAMP_AC-6(1)
+    - FedRAMP_AC-6(2)
+    - FedRAMP_AC-6(3)
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.9.1.2
+    - HIPAA
+    - HIPAA_164.308(a)
+    - HIPAA_164.312(a)
+    - HITRUST
+    - HITRUST_CSF
+    - HITRUST_CSF_01.c
+    - HITRUST_CSF_01.q
+    - HITRUST_CSF_06.j
+    - MITRE
+    - MITRE_T1070_indicator_removal_on_host
+    - MITRE_T1530_data_from_cloud_storage_object
+    - MITRE_TA0005_defense_evasion
+  source: gcp_auditlog
+
+- rule: GCP Set Bucket IAM Policy
+  desc: Detect setting the permissions on an existing bucket using IAM policies.
+  condition:
+    gcp.methodName="storage.setIamPermissions" and
+    jevt.value[/protoPayload/status]={}
+  output:
+    The permissions on an existing bucket have been set using IAM policies
+    (requesting user=%gcp.user,
+     requesting IP=%gcp.callerIP,
+     region=%jevt.value[/protoPayload/resourceLocation/currentLocations/0],
+     bucket=%jevt.value[/protoPayload/resourceName])
+  priority: WARNING
+  tags:
+    - Cloud
+    - GCP
+    - GCP_Storage_Buckets
+    - PCI
+    - PCI_DSS
+    - PCI_DSS_1.1.5
+    - PCI_DSS_7.2.1
+    - NIST
+    - NIST_800-53
+    - NIST_800-53_AC-6(1)
+    - NIST_800-53_AC-6(2)
+    - NIST_800-53_AC-6(3)
+    - NIST_800-53_AC-6(5)
+    - NIST_800-53_AC-6(10)
+    - FedRAMP
+    - FedRAMP_AC-6(1)
+    - FedRAMP_AC-6(2)
+    - FedRAMP_AC-6(3)
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.9.1.2
+    - HIPAA
+    - HIPAA_164.308(a)
+    - HIPAA_164.312(a)
+    - HITRUST
+    - HITRUST_CSF
+    - HITRUST_CSF_01.c
+    - HITRUST_CSF_01.q
+    - HITRUST_CSF_06.j
+    - MITRE
+    - MITRE_T1530_data_from_cloud_storage_object
+    - MITRE_TA0009_collection
+  source: gcp_auditlog
+
+- rule: GCP Allow Public Access to Bucket
+  desc: Detect adding public users AllUsers or AllAuthenticatedUsers to the permissions on an existing bucket.
+  condition:
+    gcp.methodName="storage.setIamPermissions" and
+    jevt.value[/protoPayload/status] = {} and
+    jevt.value[/protoPayload/serviceData/policyDelta/bindingDeltas/0/action] = "ADD" and
+    (
+      jevt.value[/protoPayload/serviceData/policyDelta/bindingDeltas/0/member] = "allUsers" or
+      jevt.value[/protoPayload/serviceData/policyDelta/bindingDeltas/0/member] = "allAuthenticatedUsers"
+    )
+  output:
+    Public access allowed to an existing bucket
+    (requesting user=%gcp.user,
+     requesting IP=%gcp.callerIP,
+     region=%jevt.value[/protoPayload/resourceLocation/currentLocations/0],
+     bucket=%jevt.value[/protoPayload/resourceName])
+  priority: WARNING
+  tags:
+    - Cloud
+    - GCP
+    - GCP_Storage_Buckets
+    - PCI
+    - PCI_DSS
+    - PCI_DSS_1.1.5
+    - PCI_DSS_7.2.1
+    - NIST
+    - NIST_800-53
+    - NIST_800-53_AC-6(1)
+    - NIST_800-53_AC-6(2)
+    - NIST_800-53_AC-6(3)
+    - NIST_800-53_AC-6(5)
+    - NIST_800-53_AC-6(10)
+    - FedRAMP
+    - FedRAMP_AC-6(1)
+    - FedRAMP_AC-6(2)
+    - FedRAMP_AC-6(3)
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.9.1.2
+    - HIPAA
+    - HIPAA_164.308(a)
+    - HIPAA_164.312(a)
+    - HITRUST
+    - HITRUST_CSF
+    - HITRUST_CSF_01.c
+    - HITRUST_CSF_01.q
+    - HITRUST_CSF_06.j
+    - MITRE
+    - MITRE_T1530_data_from_cloud_storage_object
+    - MITRE_TA0009_collection
+  source: gcp_auditlog
+
+- rule: GCP Update Bucket
+  desc: Detect the update of a bucket.
+  condition:
+    gcp.serviceName="storage.googleapis.com" and
+    gcp.methodName="storage.buckets.update" and
+    not jevt.value[/protoPayload/request/defaultObjectAcl/@type]="type.googleapis.com/google.iam.v1.Policy" and
+    jevt.value[/protoPayload/status]={}
+  output:
+    Detected an unspecified update in a bucket
+    (requesting user=%gcp.user,
+     requesting IP=%gcp.callerIP,
+     region=%jevt.value[/protoPayload/resourceLocation/currentLocations/0],
+     bucket=%jevt.value[/protoPayload/resourceName])
+  priority: WARNING
+  tags:
+    - Cloud
+    - GCP
+    - GCP_Storage_Buckets
+  source: gcp_auditlog
+
+- rule: GCP Cloud Armor Blocked Connection
+  desc: Detects blocked connection events by Cloud Armor.
+  condition:
+    jevt.value[/resource/type]="http_load_balancer" and
+    jevt.value[/jsonPayload/statusDetails]="denied_by_security_policy"
+  output:
+    A connection was blocked by a Cloud Armor policy
+    (policy=%jevt.value[/jsonPayload/enforcedSecurityPolicy/name],
+    source IP=%jevt.value[/httpRequest/remoteIp],
+    method=%jevt.value[/httpRequest/method],
+    url=%jevt.value[/httpRequest/requestUrl])
+  priority: WARNING
+  tags:
+    - Cloud
+    - GCP
+    - GCP_Cloud_Armor
+  source: gcp_auditlog
+
+- rule: GCP Create Cloud Function
+  desc: Detect creation of a Cloud function (v1 API).
+  condition:
+    gcp.serviceName="cloudfunctions.googleapis.com" and
+    gcp.methodName="google.cloud.functions.v1.CloudFunctionsService.CreateFunction" and
+    jevt.value[/protoPayload/status]={}
+  output:
+    A Cloud Function has been created
+    (requesting user=%gcp.user,
+     requesting IP=%gcp.callerIP,
+     cloud function=%jevt.value[/protoPayload/resourceName])
+  priority: WARNING
+  tags:
+    - Cloud
+    - GCP
+    - GCP_CloudFunctions
+    - MITRE
+    - MITRE_TA0003_persistence
+  source: gcp_auditlog
+
+
+- rule: GCP Create Cloud Function v2
+  desc: Detect creation of a Cloud function (v2 API).
+  condition:
+    gcp.serviceName="cloudfunctions.googleapis.com" and
+    (
+      gcp.methodName="google.cloud.functions.v2beta.FunctionService.CreateFunction" or
+      gcp.methodName="google.cloud.functions.v2.FunctionService.CreateFunction"
+    ) and
+    jevt.value[/protoPayload/status]={}
+  output:
+    A Cloud Function v2 has been created
+    (requesting user=%gcp.user,
+     requesting IP=%gcp.callerIP,
+     cloud function=%jevt.value[/protoPayload/request/function/name])
+  priority: WARNING
+  tags:
+    - Cloud
+    - GCP
+    - GCP_CloudFunctions
+    - MITRE
+    - MITRE_TA0003_persistence
+  source: gcp_auditlog
+
+- list: gcp_latest_runtimes
+  items:
+  - dotnet3
+  - go116
+  - java17
+  - java11
+  - nodejs16
+  - php81
+  - php74
+  - python310
+  - python39
+  - ruby30
+
+- rule: GCP Create Cloud Function Not Using Latest Runtime
+  desc: Detect creation of a Cloud Function (v1 API) using and old or deprecated runtime.
+  condition:
+    gcp.serviceName="cloudfunctions.googleapis.com" and
+    gcp.methodName="google.cloud.functions.v1.CloudFunctionsService.CreateFunction" and
+    not jevt.value[/protoPayload/request/function/runtime] in (gcp_latest_runtimes) and
+    jevt.value[/protoPayload/status]={}
+  output:
+    A Cloud Function has been created using an old runtime
+    (requesting user=%gcp.user,
+     requesting IP=%gcp.callerIP,
+     cloud function=%jevt.value[/protoPayload/resourceName],
+     runtime=%jevt.value[/protoPayload/request/function/runtime])
+  priority: WARNING
+  tags:
+    - Cloud
+    - GCP
+    - GCP_CloudFunctions
+    - SOC2
+    - SOC2_CC7.1
+    - MITRE
+    - MITRE_T1190_exploit_public_facing_application
+    - MITRE_TA0001_initial_access
+  source: gcp_auditlog
+
+
+- rule: GCP Create Cloud Function v2 Not Using Latest Runtime
+  desc: Detect creation of a Cloud Function (v2 API) using and old or deprecated runtime.
+  condition:
+    gcp.serviceName="cloudfunctions.googleapis.com" and
+    (
+      gcp.methodName="google.cloud.functions.v2beta.FunctionService.CreateFunction" or
+      gcp.methodName="google.cloud.functions.v2.FunctionService.CreateFunction"
+    ) and
+    not jevt.value[/protoPayload/request/function/build_config/runtime] in (gcp_latest_runtimes) and
+    jevt.value[/protoPayload/status]={}
+  output:
+    A Cloud Function has been created using an old runtime
+    (requesting user=%gcp.user,
+     requesting IP=%gcp.callerIP,
+     cloud function=%jevt.value[/protoPayload/request/function/name],
+     runtime=%jevt.value[/protoPayload/request/function/build_config/runtime])
+  priority: WARNING
+  tags:
+    - Cloud
+    - GCP
+    - GCP_CloudFunctions
+    - SOC2
+    - SOC2_CC7.1
+    - MITRE
+    - MITRE_T1190_exploit_public_facing_application
+    - MITRE_TA0001_initial_access
+  source: gcp_auditlog
+
+
+- rule: GCP Update Cloud Function
+  desc: Detect updates to a Cloud Function (v1 API).
+  condition:
+    gcp.serviceName="cloudfunctions.googleapis.com" and
+    gcp.methodName="google.cloud.functions.v1.CloudFunctionsService.UpdateFunction" and
+    jevt.value[/protoPayload/status]={}
+  output:
+    The code or configuration of a Cloud Function function has been updated
+    (requesting user=%gcp.user,
+     requesting IP=%gcp.callerIP,
+     cloud function=%jevt.value[/protoPayload/resourceName])
+  priority: WARNING
+  tags:
+    - Cloud
+    - GCP
+    - GCP_CloudFunctions
+    - MITRE
+    - MITRE_T1496_resource_hijacking
+    - MITRE_TA0003_persistence
+    - MITRE_TA0040_impact
+  source: gcp_auditlog
+
+- rule: GCP Update Cloud Function v2
+  desc: Detect updates to a Cloud Function (v2 API).
+  condition:
+    gcp.serviceName="cloudfunctions.googleapis.com" and
+    (
+      gcp.methodName="google.cloud.functions.v2beta.FunctionService.UpdateFunction" or
+      gcp.methodName="google.cloud.functions.v2.FunctionService.UpdateFunction"
+    ) and
+    jevt.value[/protoPayload/status]={}
+  output:
+    The code or configuration of a Cloud Function function has been updated
+    (requesting user=%gcp.user,
+     requesting IP=%gcp.callerIP,
+     cloud function=%jevt.value[/protoPayload/resourceName])
+  priority: WARNING
+  tags:
+    - Cloud
+    - GCP
+    - GCP_CloudFunctions
+    - MITRE
+    - MITRE_T1496_resource_hijacking
+    - MITRE_TA0003_persistence
+    - MITRE_TA0040_impact
+  source: gcp_auditlog
+
+
+
+
+- rule: GCP Cloud IDS Alert
+  desc: Detects high and critical severity alerts generated by Cloud IDS.
+  condition:
+    jevt.value[/resource/type]="ids.googleapis.com/Endpoint" and
+    (
+      jevt.value[/jsonPayload/alert_severity]="CRITICAL" or
+      jevt.value[/jsonPayload/alert_severity]="HIGH"
+    )
+  output:
+    GCP Cloud IDS alert 
+    (
+      rule=%jevt.value[/jsonPayload/name],
+      severity=%jevt.value[/jsonPayload/alert_severity],
+      source IP=%jevt.value[/jsonPayload/source_ip_address],
+      dest port=%jevt.value[/jsonPayload/destination_port]
+    )
+  priority: CRITICAL
+  tags:
+    - Cloud
+    - GCP
+    - GCP_IDS
+  source: gcp_auditlog
+
+- rule: GCP Create KMS Key Without Rotation
+  desc: Detect creation of a new KMS with rotation disabled.
+  condition:
+    gcp.serviceName="cloudkms.googleapis.com" and
+    gcp.methodName="CreateCryptoKey" and
+    not jevt.value[/protoPayload/request/cryptoKey/rotationPeriod] exists and
+    jevt.value[/protoPayload/status]={}
+  output:
+    A new KMS key has been created with rotation disabled
+    (requesting user=%gcp.user,
+     requesting IP=%gcp.callerIP,
+     key name=%jevt.value[/protoPayload/resourceName])
+  priority: WARNING
+  tags:
+    - Cloud
+    - GCP
+    - GCP_CloudKMS
+    - SOC2
+    - SOC2_CC5.2
+    - SOC2_CC6.6
+    - PCI
+    - PCI_DSS
+    - PCI_DSS_3.6.3
+    - PCI_DSS_3.6.4
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.10.1.2
+  source: gcp_auditlog
+
+- rule: GCP Remove KMS Key Rotation
+  desc: Detect removal of KMS key rotation.
+  condition:
+    gcp.serviceName="cloudkms.googleapis.com" and
+    gcp.methodName="UpdateCryptoKey" and
+    jevt.value[/protoPayload/request/updateMask] contains "rotationPeriod" and
+    not jevt.value[/protoPayload/request/cryptoKey/rotationPeriod] exists and
+    jevt.value[/protoPayload/status]={}
+  output:
+    Detected removal of KMS key rotation
+    (requesting user=%gcp.user,
+     requesting IP=%gcp.callerIP,
+     key name=%jevt.value[/protoPayload/resourceName])
+  priority: WARNING
+  tags:
+    - Cloud
+    - GCP
+    - GCP_CloudKMS
+    - SOC2
+    - SOC2_CC6.1
+    - SOC2_CC8.1
+    - PCI
+    - PCI_DSS
+    - PCI_DSS_3.6.3
+    - PCI_DSS_3.6.4
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.10.1.2
+    - ISO_27001_A.18.1.5
+    - GDPR
+    - GDPR_32.1
+    - GDPR_32.2
+  source: gcp_auditlog
+
+- rule: GCP KMS Schedule Key Deletion
+  desc: Detect scheduling of KMS key deletion.  Unauthorized users can use this in an extortion scheme to change encryption on sensitive files and ransom the owner.
+  condition:
+    gcp.serviceName="cloudkms.googleapis.com" and
+    gcp.methodName="DestroyCryptoKeyVersion" and
+    jevt.value[/protoPayload/status] = {}
+  output:
+    Detected schedule KMS key deletion
+    (requesting user=%gcp.user,
+     requesting IP=%gcp.callerIP,
+     key name=%jevt.value[/protoPayload/resourceName])
+  priority: WARNING
+  tags:
+    - Cloud
+    - GCP
+    - GCP_CloudKMS
+    - SOC2
+    - SOC2_CC6.1
+    - SOC2_CC8.1
+    - PCI
+    - PCI_DSS
+    - PCI_DSS_3.6.3
+    - PCI_DSS_3.6.4
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.10.1.2
+    - ISO_27001_A.18.1.5
+    - GDPR
+    - GDPR_32.1
+    - GDPR_32.2
+  source: gcp_auditlog
+
+- rule: CloudRun Create Service
+  desc: Detect creation of a CloudRun Service.
+  condition:
+    gcp.serviceName="run.googleapis.com" and
+    gcp.methodName="google.cloud.run.v1.Services.CreateService" and
+    jevt.value[/protoPayload/response/status]={}
+  output:
+    A CloudRun service has been created
+    (requesting user=%gcp.user,
+    requesting IP=%gcp.callerIP,
+    region=%jevt.value[/protoPayload/resourceLocation/currentLocations/0],
+    project=%gcp.projectId,
+    service=%jevt.value[/protoPayload/resourceName],
+    image=%jevt.value[/protoPayload/response/metadata/annotations/client.knative.dev~1user-image])
+  priority: WARNING
+  tags:
+    - Cloud
+    - GCP
+    - GCP_CloudRun
+  source: gcp_auditlog
+
+- rule: CloudRun Replace Service
+  desc: Detect the replacement of a CloudRun Service.
+  condition:
+    gcp.serviceName="run.googleapis.com" and
+    gcp.methodName="google.cloud.run.v1.Services.ReplaceService"
+  output:
+    A CloudRun service has been replaced
+    (requesting user=%gcp.user,
+    requesting IP=%gcp.callerIP,
+    region=%jevt.value[/protoPayload/resourceLocation/currentLocations/0],
+    project=%gcp.projectId,
+    service=%jevt.value[/protoPayload/resourceName],
+    image=%jevt.value[/protoPayload/response/metadata/annotations/client.knative.dev~1user-image])
+  priority: WARNING
+  tags:
+    - Cloud
+    - GCP
+    - GCP_CloudRun
+  source: gcp_auditlog
+
+- rule: GCP Compute Firewall Rule Created
+  desc: Detects the creation of a Compute Firewall rule.
+  condition:
+    gcp.serviceName="compute.googleapis.com" and
+    gcp.methodName="beta.compute.firewalls.insert" and
+    jevt.value[/protoPayload/response/status]="RUNNING"
+  output:
+    A Compute Firewall rule has been created
+    (requesting user=%gcp.user,
+     requesting IP=%gcp.callerIP,
+     region=%jevt.value[/protoPayload/resourceLocation/currentLocations/0],
+     resource=%jevt.value[/protoPayload/resourceName])
+  priority: WARNING
+  tags:
+    - Cloud
+    - GCP
+    - GCP_Compute
+    - GCP_Firewall
+  source: gcp_auditlog
+
+- rule: GCP Compute Firewall Rule Deleted
+  desc: Detects the deletion of a Compute Firewall rule.
+  condition:
+    gcp.serviceName="compute.googleapis.com" and
+    gcp.methodName="v1.compute.firewalls.delete"
+  output:
+    A Compute Firewall rule has been deleted
+    (requesting user=%gcp.user,
+     requesting IP=%gcp.callerIP,
+     region=%jevt.value[/protoPayload/resourceLocation/currentLocations/0],
+     resource=%jevt.value[/protoPayload/resourceName])
+  priority: WARNING
+  tags:
+    - Cloud
+    - GCP
+    - GCP_Compute
+    - GCP_Firewall
+  source: gcp_auditlog
+
+- rule: GCP Remote Access Allowed from Internet
+  desc: Detects remote access ports from anywhere being allowed through a firewall.
+  condition:
+    gcp.serviceName="compute.googleapis.com" and
+    (
+      gcp.methodName="v1.compute.firewalls.patch" or
+      gcp.methodName="v1.compute.firewalls.insert" or
+      gcp.methodName="beta.compute.firewalls.insert"
+    ) and
+    jevt.value[/protoPayload/request/sourceRanges] contains '"0.0.0.0/0"' and
+    jevt.value[/protoPayload/request/alloweds] contains '"tcp"' and
+    (
+      jevt.value[/protoPayload/request/alloweds] contains '"22"' or
+      jevt.value[/protoPayload/request/alloweds] contains '"3389"'
+    ) and
+    jevt.value[/protoPayload/response/status] = "RUNNING"
+  output:
+    A Compute Firewall rule has been updated to allow remote access from anywhere
+    (requesting user=%gcp.user,
+     requesting IP=%gcp.callerIP,
+     resource=%jevt.value[/protoPayload/resourceName])
+  priority: CRITICAL
+  tags:
+    - Cloud
+    - GCP
+    - GCP_Compute
+    - GCP_Firewall
+  source: gcp_auditlog
+
+- rule: GCP Compute Firewall Rule Updated
+  desc: Detects unspecified updates to a Compute Firewall rule.
+  condition:
+    gcp.serviceName="compute.googleapis.com" and
+    gcp.methodName="v1.compute.firewalls.patch"
+  output:
+    A Compute Firewall rule has been updated
+    (requesting user=%gcp.user,
+     requesting IP=%gcp.callerIP,
+     region=%jevt.value[/protoPayload/resourceLocation/currentLocations/0],
+     resource=%jevt.value[/protoPayload/resourceName])
+  priority: WARNING
+  tags:
+    - Cloud
+    - GCP
+    - GCP_Compute
+    - GCP_Firewall
+  source: gcp_auditlog
+
+- rule: GCP Create a Default VPC Network
+  desc: Detect creation of a default network in a project.
+  condition:
+    gcp.serviceName="compute.googleapis.com" and
+    gcp.methodName="beta.compute.networks.insert" and
+    jevt.value[/protoPayload/resourceName] endswith "networks/default"
+  output:
+    A default network has been created
+    (requesting user=%gcp.user,
+     requesting IP=%gcp.callerIP,
+     region=%jevt.value[/protoPayload/resourceLocation/currentLocations/0],
+     network=%jevt.value[/protoPayload/resourceName])
+  priority: WARNING
+  tags:
+    - Cloud
+    - GCP
+    - GCP_VPC_Networks
+    - PCI
+    - PCI_DSS
+    - PCI_DSS_1.1.1
+    - PCI_DSS_1.2.1
+    - NIST
+    - NIST_800-53
+    - NIST_800-53_CM-3(1)
+    - NIST_800-53_SC-7(3)
+    - NIST_800-53_SC-7(4)
+    - NIST_800-53_SC-7(21)
+    - FedRAMP
+    - FedRAMP_CM-3(1)
+    - FedRAMP_SC-7(4)
+    - HITRUST
+    - HITRUST_CSF
+    - HITRUST_CSF_01.n
+    - HITRUST_CSF_10.k
+    - CIS
+    - CIS_GCP
+    - CIS_GCP_3.1
+  source: gcp_auditlog
+
+- rule: GCP Disable Subnet Flow Logs
+  desc: Detect disabling the flow logs of a subnet.
+  condition:
+    gcp.serviceName="compute.googleapis.com" and
+    gcp.methodName="v1.compute.subnetworks.patch" and
+    jevt.value[/protoPayload/request/enableFlowLogs]=false and
+    jevt.value[/protoPayload/response/status]="DONE"
+  output:
+    Flow logs have been disabled for a subnet
+    (requesting user=%gcp.user,
+     requesting IP=%gcp.callerIP,
+     region=%jevt.value[/protoPayload/resourceLocation/currentLocations/0],
+     network=%jevt.value[/protoPayload/resourceName])
+  priority: WARNING
+  tags:
+    - Cloud
+    - GCP
+    - GCP_VPC_Networks
+    - SOC2
+    - SOC2_CC6.6
+    - PCI
+    - PCI_DSS
+    - PCI_DSS_ 1.1.1
+    - PCI_DSS_10.1
+    - PCI_DSS_10.2
+    - PCI_DSS_10.3
+    - PCI_DSS_10.5
+    - NIST
+    - NIST_800-53
+    - NIST_800-53_CM-3(1)
+    - NIST_800-53_AU-12(1)
+    - NIST_800-53_AU-3(1)
+    - NIST_800-53_AU-9(2)
+    - FedRAMP
+    - FedRAMP_AU-12(1)
+    - FedRAMP_AU-3(1)
+    - FedRAMP_AU-9(2)
+    - FedRAMP_CM-3(1)
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.16.1.7
+    - ISO_27001_A.18.1.3
+    - HIPAA
+    - HIPAA_164.312(b)
+    - HITRUST
+    - HITRUST_CSF
+    - HITRUST_CSF_09.aa
+    - HITRUST_CSF_10.k
+    - CIS
+    - CIS_GCP
+    - CIS_GCP_3.8
+  source: gcp_auditlog
+
+- rule: GCP Enable Connecting to Serial Ports for a VM Instance
+  desc: Detect enabling of connection to serial ports for a VM instance.
+  condition:
+    gcp.serviceName="compute.googleapis.com" and
+    gcp.methodName="v1.compute.instances.setMetadata" and
+    jevt.value[/protoPayload/metadata/instanceMetadataDelta/addedMetadataKeys/0]="serial-port-enable"
+  output:
+    Connection to serial ports have been enabled for a VM instance
+    (requesting user=%gcp.user,
+     requesting IP=%gcp.callerIP,
+     region=%jevt.value[/protoPayload/resourceLocation/currentLocations/0],
+     vm instance=%jevt.value[/protoPayload/resourceName])
+  priority: WARNING
+  tags:
+    - Cloud
+    - GCP
+    - GCP_VM
+    - PCI
+    - PCI_DSS
+    - PCI_DSS_1.1.1
+    - NIST
+    - NIST_800-53
+    - NIST_800-53_CM-3(1)
+    - FedRAMP
+    - FedRAMP_CM-3(1)
+    - HITRUST
+    - HITRUST_CSF
+    - HITRUST_CSF_10.k
+    - CIS
+    - CIS_GCP
+    - CIS_GCP_4.5
+  source: gcp_auditlog
+
+- rule: GCP Creation of a VM Instance with IP Forwarding Enabled
+  desc: Detect creating a VM instance with IP forwarding enabled.
+  condition:
+    gcp.serviceName="compute.googleapis.com" and
+    gcp.methodName="beta.compute.instances.insert" and
+    jevt.value[/protoPayload/request/canIpForward]="true"
+  output:
+    A VM instance with IP forwarding enabled has been created
+    (requesting user=%gcp.user,
+     requesting IP=%gcp.callerIP,
+     region=%jevt.value[/protoPayload/resourceLocation/currentLocations/0],
+     vm instance=%jevt.value[/protoPayload/resourceName])
+  priority: WARNING
+  tags:
+    - Cloud
+    - GCP
+    - GCP_VM
+    - CIS
+    - CIS_GCP
+    - CIS_GCP_4.6
+  source: gcp_auditlog
+
+- rule: GCP Delete Compute VM Instance
+  desc: Detect the deletion of a Compute VM instance.
+  condition:
+    gcp.serviceName="compute.googleapis.com" and
+    gcp.methodName="v1.compute.instances.delete"
+  exceptions:
+    - name: gcp_user
+      fields: gcp.user
+  output:
+    Compute VM instance deleted
+    (requesting user=%gcp.user,
+     requesting IP=%gcp.callerIP,
+     vm instance=%jevt.value[/protoPayload/resourceName])
+  priority: CRITICAL
+  tags:
+    - Cloud
+    - GCP
+    - GCP_VM
+  source: gcp_auditlog
+
+- rule: GCP Suspected Disable of OS Login in a VM Instance
+  desc: Detect modification of the enable-oslogin metadata in an instance.
+  condition:
+    gcp.serviceName="compute.googleapis.com" and
+    gcp.methodName="v1.compute.instances.setMetadata" and
+    (
+     jevt.value[/protoPayload/metadata/instanceMetadataDelta/addedMetadataKeys/0]="enable-oslogin" or
+     jevt.value[/protoPayload/metadata/instanceMetadataDelta/modifiedMetadataKeys/0]="enable-oslogin" or
+     jevt.value[/protoPayload/metadata/instanceMetadataDelta/deletedMetadataKeys/0]="enable-oslogin"
+    )
+  output:
+    A modification of the enable-oslogin metadata value has happened in a VM instance
+    (requesting user=%gcp.user,
+     requesting IP=%gcp.callerIP,
+     region=%jevt.value[/protoPayload/resourceLocation/currentLocations/0],
+     vm instance=%jevt.value[/protoPayload/resourceName])
+  priority: WARNING
+  tags:
+    - Cloud
+    - GCP
+    - GCP_VM
+    - CIS
+    - CIS_GCP
+    - CIS_GCP_4.4
+  source: gcp_auditlog
+
+- rule: GCP Enable Project-wide SSH keys for a VM Instance
+  desc: Detect enabling of project-wide SSH keys for a VM instance.
+  condition:
+    gcp.serviceName="compute.googleapis.com" and
+    (
+      (gcp.methodName="v1.compute.instances.setMetadata" and
+       jevt.value[/protoPayload/metadata/instanceMetadataDelta/deletedMetadataKeys/0]="block-project-ssh-keys")
+    )
+  output:
+    Project-wide SSH keys have been enabled for a VM instance
+    (requesting user=%gcp.user,
+     requesting IP=%gcp.callerIP,
+     region=%jevt.value[/protoPayload/resourceLocation/currentLocations/0],
+     vm instance=%jevt.value[/protoPayload/resourceName])
+  priority: WARNING
+  tags:
+    - Cloud
+    - GCP
+    - GCP_VM
+    - PCI
+    - PCI_DSS
+    - PCI_DSS_2.3
+    - NIST
+    - NIST_800-53
+    - NIST_800-53_AC-17(1)
+    - NIST_800-53_AC-17(2)
+    - NIST_800-53_AC-17(3)
+    - HIPAA
+    - HIPAA_164.310(b)
+    - HITRUST
+    - HITRUST_CSF
+    - HITRUST_CSF_01.j
+    - HITRUST_CSF_01.n
+    - HITRUST_CSF_01.y
+    - HITRUST_CSF_05.i
+    - HITRUST_CSF_09.s
+    - CIS
+    - CIS_GCP
+    - CIS_GCP_4.3
+  source: gcp_auditlog
+
+- rule: GCP Shield Disabled for a VM Instance
+  desc: Detect disabling of the Shielded VM parameter(s) of a VM instance.
+  condition:
+    gcp.serviceName="compute.googleapis.com" and
+    (
+      gcp.methodName endswith ".compute.instances.updateShieldedInstanceConfig" and
+      (
+        jevt.value[/protoPayload/request/enableVtpm]="false" or
+        jevt.value[/protoPayload/request/enableIntegrityMonitoring]="false"
+      ) or
+      gcp.methodName endswith ".compute.instances.insert" and
+      (
+        jevt.value[/protoPayload/request/shieldedInstanceConfig/enableVtpm]="false" or
+        jevt.value[/protoPayload/request/shieldedInstanceConfig/enableIntegrityMonitoring]="false"
+      )
+    )
+  output:
+    A VM instance has been created or updated with Shielded VM parameter(s) disabled
+    (requesting user=%gcp.user,
+     requesting IP=%gcp.callerIP,
+     region=%jevt.value[/protoPayload/resourceLocation/currentLocations/0],
+     vm instance=%jevt.value[/protoPayload/resourceName])
+  priority: WARNING
+  tags:
+    - Cloud
+    - GCP
+    - GCP_VM
+    - CIS
+    - CIS_GCP
+    - CIS_GCP_4.8
+  source: gcp_auditlog
+
+- rule: GCP Create DLP Job
+  desc: Detect creation of a Data Loss Prevention job.
+  condition:
+    gcp.serviceName="dlp.googleapis.com" and
+    gcp.methodName="google.privacy.dlp.v2.DlpService.CreateJobTrigger"
+  output:
+    A Data Loss Prevention job has been created
+    (requesting user=%gcp.user,
+     requesting IP=%gcp.callerIP,
+     region=%jevt.value[/protoPayload/resourceLocation/currentLocations/0],
+     resource=%jevt.value[/protoPayload/resourceName])
+  priority: NOTICE
+  tags:
+    - Cloud
+    - GCP
+    - GCP_Data_Loss_Prevention
+  source: gcp_auditlog
+
+- rule: GCP Delete DLP Job
+  desc: Detect deletion of a Data Loss Prevention job.
+  condition:
+    gcp.serviceName="dlp.googleapis.com" and
+    gcp.methodName="google.privacy.dlp.v2.DlpService.DeleteJobTrigger"
+  output:
+    A Data Loss Prevention job has been created
+    (requesting user=%gcp.user,
+     requesting IP=%gcp.callerIP,
+     region=%jevt.value[/protoPayload/resourceLocation/currentLocations/0],
+     resource=%jevt.value[/protoPayload/resourceName])
+  priority: WARNING
+  tags:
+    - Cloud
+    - GCP
+    - GCP_Data_Loss_Prevention
+  source: gcp_auditlog
+
+- rule: GCP Paused DLP Job
+  desc: Detects pausing of a Data Loss Prevention job.
+  condition:
+    gcp.serviceName="dlp.googleapis.com" and
+    gcp.methodName="google.privacy.dlp.v2.DlpService.UpdateJobTrigger" and
+    jevt.value[/protoPayload/request/jobTrigger/status]="PAUSED" and
+    jevt.value[/protoPayload/response/status]="PAUSED"
+  output:
+    A Data Loss Prevention job has been paused
+    (requesting user=%gcp.user,
+     requesting IP=%gcp.callerIP,
+     region=%jevt.value[/protoPayload/resourceLocation/currentLocations/0],
+     resource=%jevt.value[/protoPayload/resourceName])
+  priority: WARNING
+  tags:
+    - Cloud
+    - GCP
+    - GCP_Data_Loss_Prevention
+  source: gcp_auditlog
+
+- rule: GCP Updated DLP Job
+  desc: Detects unspecified updates to a Data Loss Prevention job.
+  condition:
+    gcp.serviceName="dlp.googleapis.com" and
+    gcp.methodName="google.privacy.dlp.v2.DlpService.UpdateJobTrigger"
+  output:
+    A Data Loss Prevention job has been updated
+    (requesting user=%gcp.user,
+     requesting IP=%gcp.callerIP,
+     region=%jevt.value[/protoPayload/resourceLocation/currentLocations/0],
+     resource=%jevt.value[/protoPayload/resourceName])
+  priority: WARNING
+  tags:
+    - Cloud
+    - GCP
+    - GCP_Data_Loss_Prevention
+  source: gcp_auditlog
+
+- rule: GCP Create DNS Record
+  desc: Detect the creation of a DNS record.
+  condition:
+    gcp.serviceName="dns.googleapis.com" and
+    gcp.methodName="dns.changes.create" and
+    jevt.value[/protoPayload/authorizationInfo/0/permission]="dns.changes.create" and
+    jevt.value[/protoPayload/status]={}
+  output:
+    A DNS record has been created
+    (requesting user=%gcp.user,
+     resource=%jevt.value[/protoPayload/resourceName],
+     zone=%jevt.value[/resource/labels/zone_name])
+  priority: NOTICE
+  tags:
+    - Cloud
+    - GCP
+    - GCP_DNS
+  source: gcp_auditlog
+
+- rule: GCP Create DNS Zone
+  desc: Detect the creation of a DNS zone.
+  condition:
+    gcp.serviceName="dns.googleapis.com" and
+    gcp.methodName="dns.managedZones.create" and
+    jevt.value[/protoPayload/status]={}
+  output:
+    A DNS zone has been created
+    (requesting user=%gcp.user,
+     resource=%jevt.value[/protoPayload/resourceName],
+     zone=%jevt.value[/resource/labels/zone_name])
+  priority: NOTICE
+  tags:
+    - Cloud
+    - GCP
+    - GCP_DNS
+  source: gcp_auditlog
+
+- rule: GCP Delete DNS Record
+  desc: Detect the deletion of a DNS record.
+  condition:
+    gcp.serviceName="dns.googleapis.com" and
+    (
+      gcp.methodName="dns.changes.create" or
+      gcp.methodName="dns.changes.delete"
+    ) and
+    jevt.value[/protoPayload/authorizationInfo/0/permission]="dns.resourceRecordSets.delete" and
+    jevt.value[/protoPayload/status]={}
+  output:
+    A DNS record has been deleted
+    (requesting user=%gcp.user,
+     resource=%jevt.value[/protoPayload/resourceName],
+     zone=%jevt.value[/resource/labels/zone_name])
+  priority: NOTICE
+  tags:
+    - Cloud
+    - GCP
+    - GCP_DNS
+  source: gcp_auditlog
+
+- rule: GCP Delete DNS Zone
+  desc: Detect the deletion of a DNS zone.
+  condition:
+    gcp.serviceName="dns.googleapis.com" and
+    gcp.methodName="dns.managedZones.delete" and
+    jevt.value[/protoPayload/status]={}
+  output:
+    A DNS zone has been deleted
+    (requesting user=%gcp.user,
+     resource=%jevt.value[/protoPayload/resourceName],
+     zone=%jevt.value[/resource/labels/zone_name])
+  priority: CRITICAL
+  tags:
+    - Cloud
+    - GCP
+    - GCP_DNS
+  source: gcp_auditlog
+
+- rule: GCP Update DNS Record
+  desc: Detect the updating of a DNS record.
+  condition:
+    gcp.serviceName="dns.googleapis.com" and
+    (
+      gcp.methodName="dns.changes.create" or
+      gcp.methodName="dns.changes.delete"
+    ) and
+    jevt.value[/protoPayload/authorizationInfo/0/permission]="dns.resourceRecordSets.update" and
+    jevt.value[/protoPayload/status]={}
+  output:
+    A DNS record has been updated
+    (requesting user=%gcp.user,
+     resource=%jevt.value[/protoPayload/resourceName],
+     zone=%jevt.value[/resource/labels/zone_name])
+  priority: NOTICE
+  tags:
+    - Cloud
+    - GCP
+    - GCP_DNS
+  source: gcp_auditlog
+
+- rule: GCP Update DNS Zone
+  desc: Detect the update of a DNS zone.
+  condition:
+    gcp.serviceName="dns.googleapis.com" and
+    gcp.methodName="dns.managedZones.patch" and
+    jevt.value[/protoPayload/status]={}
+  output:
+    A DNS zone has been updated
+    (requesting user=%gcp.user,
+     resource=%jevt.value[/protoPayload/resourceName],
+     zone=%jevt.value[/resource/labels/zone_name])
+  priority: NOTICE
+  tags:
+    - Cloud
+    - GCP
+    - GCP_DNS
+  source: gcp_auditlog
+
+- rule: GCP Create or Patch DNS Zone without DNSSEC
+  desc: Detect creation of a DNS zone with DNSSEC disabled or a modification of a DNS zone to disable DNSSEC.
+  condition:
+    gcp.serviceName="dns.googleapis.com" and
+    (
+      (
+        gcp.methodName="dns.managedZones.create" and
+        not jevt.value[/protoPayload/request/managedZone/dnssecConfig/state]="ON"
+      ) or
+      (
+        gcp.methodName="dns.managedZones.patch" and
+        not jevt.value[/protoPayload/request/managedZoneResource/dnssecConfig/state]="ON"
+      )
+    ) and
+    jevt.value[/protoPayload/status]={}
+  output:
+    A DNS zone has been created with DNSSEC disabled or a DNS zone has been updated to disable DNSSEC
+    (requesting user=%gcp.user,
+     requesting IP=%gcp.callerIP,
+     zone=%jevt.value[/protoPayload/resourceName])
+  priority: WARNING
+  tags:
+    - Cloud
+    - GCP
+    - GCP_DNS
+    - CIS
+    - CIS_GCP
+    - CIS_GCP_3.3
+  source: gcp_auditlog
+
+- rule: GCP Describe Instance
+  desc: Detect description of the specified GCE instance.
+  condition:
+    gcp.serviceName="compute.googleapis.com" and
+    gcp.methodName="v1.compute.instances.get"
+  output:
+    A description of a GCE instance has been requested
+    (requesting user=%gcp.user,
+     requesting IP=%gcp.callerIP,
+     region=%jevt.value[/protoPayload/resourceLocation/currentLocations/0],
+     instance name=%jevt.value[/protoPayload/resourceName])
+  priority: WARNING
+  tags:
+    - Cloud
+    - GCP
+    - GCP_GCE
+  source: gcp_auditlog
+
+- list: disallowed_gcp_regions
+  items: ["us-east10"]
+
+- rule: GCP Command Executed on Unused Region
+  desc: Detect GCP command execution on unused regions.
+  condition:
+    jevt.value[/protoPayload/resourceLocation/currentLocations/0] exists and
+    jevt.value[/protoPayload/resourceLocation/currentLocations/0] in (disallowed_gcp_regions) and
+    jevt.value[/protoPayload/status]={}
+  output:
+    A GCP command has been executed on an unused region
+    (requesting user=%gcp.user,
+     requesting IP=%gcp.callerIP,
+     region=%jevt.value[/protoPayload/resourceLocation/currentLocations/0])
+  priority: CRITICAL
+  tags:
+    - Cloud
+    - GCP
+    - NIST
+    - NIST_800-53
+    - NIST_800-53_AC-2(12)
+    - FedRAMP
+    - FedRAMP_AC-2(12)
+    - HIPAA
+    - HIPAA_164.308(a)
+    - HIPAA_164.312(a)
+    - MITRE
+    - MITRE_T1526_cloud_service_discovery
+    - MITRE_T1535_unused_unsupported_cloud_regions
+  source: gcp_auditlog
+
+- rule: GCP Suspicious IP Inbound Request
+  desc: Detect audit log alerts sourced from known suspicious IPs, such as TOR exit nodes.
+  condition:
+    gcp.callerIP in (ti_anon_ips)
+  output:
+    Suspicious IP Request Source
+    (requesting user=%gcp.user,
+     requesting IP=%gcp.callerIP,
+     region=%jevt.value[/protoPayload/resourceLocation/currentLocations/0],
+     resource=%jevt.value[/protoPayload/resourceName])
+  priority: WARNING
+  tags:
+    - Cloud
+    - GCP
+  source: gcp_auditlog
+
+- rule: GCP Delete GKE Cluster
+  desc: Detect the deletion of a GKE cluster.
+  condition:
+    gcp.serviceName="container.googleapis.com" and
+    gcp.methodName="google.container.v1.ClusterManager.DeleteCluster" and
+    jevt.value[/protoPayload/status]={}
+  output:
+    A GKE cluster has been deleted
+    (requesting user=%gcp.user,
+     requesting IP=%gcp.callerIP,
+     region=%jevt.value[/protoPayload/resourceLocation/currentLocations/0],
+     resource=%jevt.value[/protoPayload/resourceName])
+  priority: CRITICAL
+  tags:
+    - Cloud
+    - GCP
+    - GCP_GKE
+  source: gcp_auditlog
+
+- rule: GCP Delete GKE Node Pool
+  desc: Detect the deletion of a GKE node pool.
+  condition:
+    gcp.serviceName="container.googleapis.com" and
+    gcp.methodName="google.container.v1.ClusterManager.DeleteNodePool"
+  output:
+    A GKE node pool has been deleted
+    (requesting user=%gcp.user,
+     requesting IP=%gcp.callerIP,
+     region=%jevt.value[/protoPayload/resourceLocation/currentLocations/0],
+     resource=%jevt.value[/protoPayload/resourceName])
+  priority: CRITICAL
+  tags:
+    - Cloud
+    - GCP
+    - GCP_GKE
+  source: gcp_auditlog
+
+- rule: GCP Delete Router
+  desc: Detect the deletion of a router.
+  condition:
+    gcp.methodName="v1.compute.routers.delete"
+  output:
+    A router has been deleted
+    (requesting user=%gcp.user,
+     requesting IP=%gcp.callerIP,
+     region=%jevt.value[/protoPayload/resourceLocation/currentLocations/0],
+     resource=%jevt.value[/protoPayload/resourceName])
+  priority: CRITICAL
+  tags:
+    - Cloud
+    - GCP
+    - GCP_VPC_Networks
+  source: gcp_auditlog
+
+# Use this list for custom sensitive roles to monitor. Add prefix "roles/" and use lowercase; ie "roles/viewer".
+- list: custom_sensitive_roles
+  items: []
+
+- rule: GCP Sensitive Role Added to User
+  desc: Detect when sensitive roles are added to a user, like "roles/owner".
+  condition:
+    gcp.serviceName="cloudresourcemanager.googleapis.com" and
+    gcp.methodName="SetIamPolicy" and
+    jevt.value[/protoPayload/serviceData/policyDelta/bindingDeltas] contains '"ADD"' and
+    (
+      jevt.value[/protoPayload/serviceData/policyDelta/bindingDeltas] contains "admin" or
+      jevt.value[/protoPayload/serviceData/policyDelta/bindingDeltas] contains "owner" or
+      jevt.value[/protoPayload/serviceData/policyDelta/bindingDeltas] in (custom_sensitive_roles)
+    ) and
+    jevt.value[/protoPayload/status]={}
+  output:
+    A sensitive role has been added to a user (check GCP logs for details) 
+    (requesting user=%gcp.user,
+     requesting IP=%gcp.callerIP)
+  priority: WARNING
+  tags:
+    - Cloud
+    - GCP
+    - GCP_IAM
+  source: gcp_auditlog
+
+- rule: GCP Create GCP-managed Service Account Key
+  desc: Detect creating an access key for a GCP-managed service account.
+  condition:
+    gcp.serviceName="iam.googleapis.com" and
+    gcp.methodName="google.iam.admin.v1.CreateServiceAccountKey" and
+    not jevt.value[/protoPayload/response/name] contains "iam.gserviceaccount.com" and
+    jevt.value[/protoPayload/status]={}
+  output:
+    An access key has been created for a service account
+    (requesting user=%gcp.user,
+     requesting IP=%gcp.callerIP,
+     service account=%jevt.value[/protoPayload/resourceName])
+  priority: CRITICAL
+  tags:
+    - Cloud
+    - GCP
+    - GCP_IAM
+    - SOC2
+    - SOC2_CC5.2
+    - SOC2_CC6.6
+    - PCI
+    - PCI_DSS
+    - PCI_DSS_3.6.4
+    - NIST
+    - NIST_800-53
+    - NIST_800-53_SC-12(1)
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.10.1.2
+    - HIPAA
+    - HIPAA_164.312(e)
+    - HITRUST
+    - HITRUST_CSF
+    - HITRUST_CSF_06.d
+    - HITRUST_CSF_10.g
+    - MITRE
+    - MITRE_T1550_use_alternate_authentication_material
+    - MITRE_TA0005_defense_evasion
+    - MITRE_TA0008_lateral_movement
+  source: gcp_auditlog
+
+- rule: GCP Create User-managed Service Account Key
+  desc: Detect creating an access key for a user-managed service account.
+  condition:
+    gcp.serviceName="iam.googleapis.com" and
+    gcp.methodName="google.iam.admin.v1.CreateServiceAccountKey" and
+    jevt.value[/protoPayload/response/name] contains "iam.gserviceaccount.com" and
+    jevt.value[/protoPayload/status]={}
+  output:
+    An access key has been created for a user-managed service account
+    (requesting user=%gcp.user,
+     requesting IP=%gcp.callerIP,
+     service account=%jevt.value[/protoPayload/resourceName])
+  priority: CRITICAL
+  tags:
+    - Cloud
+    - GCP
+    - GCP_IAM
+    - SOC2
+    - SOC2_CC5.2
+    - SOC2_CC6.6
+    - PCI
+    - PCI_DSS
+    - PCI_DSS_3.6.4
+    - NIST
+    - NIST_800-53
+    - NIST_800-53_SC-12(1)
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.10.1.2
+    - HIPAA
+    - HIPAA_164.312(e)
+    - HITRUST
+    - HITRUST_CSF
+    - HITRUST_CSF_06.d
+    - HITRUST_CSF_10.g
+    - MITRE
+    - MITRE_T1550_use_alternate_authentication_material
+    - MITRE_TA0005_defense_evasion
+    - MITRE_TA0008_lateral_movement
+    - CIS
+    - CIS_GCP
+    - CIS_GCP_1.4
+  source: gcp_auditlog
+
+- rule: GCP Delete IAM Role
+  desc: Detect the deletion of an IAM role.
+  condition:
+    gcp.methodName="google.iam.admin.v1.DeleteRole" and
+    jevt.value[/protoPayload/status]={}
+  output:
+    An IAM role has been deleted
+    (requesting user=%gcp.user,
+     requesting IP=%gcp.callerIP,
+     region=%jevt.value[/protoPayload/resourceLocation/currentLocations/0],
+     role=%jevt.value[/protoPayload/resourceName])
+  priority: CRITICAL
+  tags:
+    - Cloud
+    - GCP
+    - GCP_IAM
+  source: gcp_auditlog
+
+- macro: gcp_allowed_corporate_email_accounts
+  condition:
+    jevt.value[/protoPayload/request/email] contains "@sysdig.com"
+
+- rule: GCP Invitation Sent to Non-corporate Account
+  desc: Detect sending invitations to not allowed corporate account.
+  condition:
+    gcp.serviceName="cloudresourcemanager.googleapis.com" and
+    gcp.methodName="CheckInvitationRequired" and
+    not (gcp_allowed_corporate_email_accounts) and
+    jevt.value[/protoPayload/status]={}
+  output:
+    An invitation has been sent to a non-corporate account
+    (requesting user=%gcp.user,
+     requesting IP=%gcp.callerIP,
+     offending email=%jevt.value[/protoPayload/request/email])
+  priority: CRITICAL
+  tags:
+    - Cloud
+    - GCP
+    - GCP_CloudResourceManager
+    - PCI
+    - PCI_DSS
+    - PCI_DSS_8.1.1
+    - NIST
+    - NIST_800-53
+    - NIST_800-53_IA-2(12)
+    - HIPAA
+    - HIPAA_164.308(a)
+    - HIPAA_164.312(a)
+    - HIPAA_164.312(d)
+    - HITRUST
+    - HITRUST_CSF
+    - HITRUST_CSF_01.q
+    - MITRE
+    - MITRE_T1136_create_account
+    - MITRE_TA0003_persistence
+    - CIS
+    - CIS_GCP
+    - CIS_GCP_1.1
+  source: gcp_auditlog
+
+- macro: gcp_corporate_email_accounts
+  condition:
+    gcp.user contains "@sysdig.com"
+
+- rule: GCP Operation by a Non-corporate Account
+  desc: Detect executing an operation by a non-corporate account.
+  condition:
+    gcp.user exists and
+    not (gcp_corporate_email_accounts) and
+    not gcp.user startswith "system:" and
+    jevt.value[/protoPayload/status]={}
+  output:
+    An operation has been executed by a non-corporate account
+    (requesting user=%gcp.user,
+     requesting IP=%gcp.callerIP,
+     operation=%gcp.methodName)
+  priority: CRITICAL
+  tags:
+    - Cloud
+    - GCP
+    - GCP_IAM
+    - PCI
+    - PCI_DSS
+    - PCI_DSS_8.1.1
+    - NIST
+    - NIST_800-53
+    - NIST_800-53_IA-2(12)
+    - HIPAA
+    - HIPAA_164.308(a)
+    - HIPAA_164.312(a)
+    - HIPAA_164.312(d)
+    - HITRUST
+    - HITRUST_CSF
+    - HITRUST_CSF_01.q
+    - CIS
+    - CIS_GCP
+    - CIS_GCP_1.1
+  source: gcp_auditlog
+
+- rule: GCP Service Account Role Granted to User
+  desc: Detects sensitive service account roles granted to a user.  These roles may allow the user to impersonate a service account.
+  condition:
+    gcp.serviceName="iam.googleapis.com" and
+    gcp.methodName="google.iam.admin.v1.SetIAMPolicy" and
+    jevt.value[/protoPayload/serviceData/policyDelta/bindingDeltas] contains '"ADD"' and
+    (
+      jevt.value[/protoPayload/serviceData/policyDelta/bindingDeltas] contains '"roles/iam.serviceAccountUser"' or
+      jevt.value[/protoPayload/serviceData/policyDelta/bindingDeltas] contains '"roles/iam.serviceAccountTokenCreator"' or
+      jevt.value[/protoPayload/serviceData/policyDelta/bindingDeltas] contains '"roles/iam.serviceAccountKeyAdmin"'
+    ) and
+    jevt.value[/protoPayload/status]={}
+  output:
+    GCP sensitive service account role granted to user
+    (requesting user=%gcp.user,
+     requesting IP=%gcp.callerIP,
+     account=%jevt.value[/protoPayload/resourceName])
+  priority: WARNING
+  tags:
+    - Cloud
+    - GCP
+    - GCP_IAM
+  source: gcp_auditlog
+
+- list: super_admin_users
+  items: []
+
+- rule: GCP Super Admin Executing Command
+  desc: Detect super admin executing GPC command.
+  condition:
+    gcp.user exists and
+    gcp.user in (super_admin_users) and
+    jevt.value[/protoPayload/status]={}
+  output:
+    GCP Super Admin has executed a command
+    (requesting user=%gcp.user,
+     requesting IP=%gcp.callerIP,
+     region=%jevt.value[/protoPayload/resourceLocation/currentLocations/0],
+     command=%gcp.methodName)
+  priority: CRITICAL
+  tags:
+    - Cloud
+    - GCP
+    - GCP_IAM
+    - SOC2
+    - SOC2_CC6.2
+    - SOC2_CC6.6
+    - PCI
+    - PCI_DSS
+    - PCI_DSS_7.1.2
+    - NIST
+    - NIST_800-53
+    - NIST_800-53_AC-2(12)
+    - NIST_800-53_AC-6(9)
+    - NIST_800-53_AU-6(8)
+    - FedRAMP
+    - FedRAMP_AC-2(12)
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.6.1.2
+    - ISO_27001_A.9.2.3
+    - HIPAA
+    - HIPAA_164.308(a)
+    - HIPAA_164.312(a)
+    - HIPAA_164.312(b)
+    - HITRUST
+    - HITRUST_CSF
+    - HITRUST_CSF_01.c
+    - HITRUST_CSF_09.aa
+    - GDPR
+    - GDPR_25.1
+    - GDPR_25.2
+    - GDPR_25.3
+  source: gcp_auditlog
+
+- rule: GCP Update, Disable or Delete Sink
+  desc: Detect the updating, disabling or deletion of a sink.
+  condition:
+    gcp.serviceName="logging.googleapis.com" and
+    (
+      (gcp.methodName="google.logging.v2.ConfigServiceV2.UpdateSink" and
+       jevt.value[/protoPayload/request/updateMask] contains "filter" and
+       not jevt.value[/protoPayload/request/sink/filter]="") or
+      (gcp.methodName="google.logging.v2.ConfigServiceV2.UpdateSink" and
+       jevt.value[/protoPayload/request/updateMask] contains "disabled") or
+      (gcp.methodName="google.logging.v2.ConfigServiceV2.DeleteSink")
+    ) and
+    jevt.value[/protoPayload/status]={}
+  output:
+    Detected an unspecified update in a bucket which could lead to lost log entries
+    (requesting user=%gcp.user,
+     requesting IP=%gcp.callerIP,
+     sink name=%jevt.value[/protoPayload/resourceName],
+     offending operation=%gcp.methodName,
+     offending mask=%jevt.value[/protoPayload/request/updateMask])
+  priority: WARNING
+  tags:
+    - Cloud
+    - GCP
+    - GCP_Logging
+    - PCI
+    - PCI_DSS
+    - PCI_DSS_ 1.1.1
+    - PCI_DSS_10.1
+    - PCI_DSS_10.2
+    - PCI_DSS_10.3
+    - PCI_DSS_10.5
+    - NIST
+    - NIST_800-53
+    - NIST_800-53_CM-3(1)
+    - NIST_800-53_AU-12(1)
+    - NIST_800-53_AU-3(1)
+    - NIST_800-53_AU-9(2)
+    - FedRAMP
+    - FedRAMP_AU-12(1)
+    - FedRAMP_AU-3(1)
+    - FedRAMP_AU-9(2)
+    - FedRAMP_CM-3(1)
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.16.1.7
+    - ISO_27001_A.18.1.3
+    - HIPAA
+    - HIPAA_164.312(b)
+    - HITRUST
+    - HITRUST_CSF
+    - HITRUST_CSF_09.aa
+    - HITRUST_CSF_10.k
+    - CIS
+    - CIS_GCP
+    - CIS_GCP_2.2
+  source: gcp_auditlog
+
+- rule: GCP Monitoring Alert Deleted
+  desc: Detect deletion of an alert.
+  condition:
+    gcp.serviceName="monitoring.googleapis.com" and
+    gcp.methodName="google.monitoring.v3.AlertPolicyService.DeleteAlertPolicy"
+  output:
+    An alert has been deleted
+    (requesting user=%gcp.user,
+     requesting IP=%gcp.callerIP)
+  priority: WARNING
+  tags:
+    - Cloud
+    - GCP
+    - GCP_Monitoring
+    - PCI
+    - PCI_DSS
+    - PCI_DSS_ 1.1.1
+    - PCI_DSS_10.1
+    - PCI_DSS_10.2
+    - PCI_DSS_10.3
+    - PCI_DSS_10.5
+    - NIST
+    - NIST_800-53
+    - NIST_800-53_CM-3(1)
+    - NIST_800-53_AU-12(1)
+    - NIST_800-53_AU-3(1)
+    - NIST_800-53_AU-9(2)
+    - FedRAMP
+    - FedRAMP_AU-12(1)
+    - FedRAMP_AU-3(1)
+    - FedRAMP_AU-9(2)
+    - FedRAMP_CM-3(1)
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.16.1.7
+    - ISO_27001_A.18.1.3
+    - HIPAA
+    - HIPAA_164.312(b)
+    - HITRUST
+    - HITRUST_CSF
+    - HITRUST_CSF_09.aa
+    - HITRUST_CSF_10.k
+    - MITRE
+    - MITRE_T1027_obfuscated_files_or_information
+    - MITRE_T1027.005_indicator_removal_from_tools
+    - MITRE_T1562_impair_defenses
+    - MITRE_T1562.008_disable_cloud_logs
+    - MITRE_TA0005_defense_evasion
+  source: gcp_auditlog
+
+- rule: GCP Monitoring Alert Updated
+  desc: Detect updating of an alert.
+  condition:
+    gcp.serviceName="monitoring.googleapis.com" and
+    gcp.methodName="google.monitoring.v3.AlertPolicyService.UpdateAlertPolicy"
+  output:
+    An alert has been updated
+    (requesting user=%gcp.user,
+     requesting IP=%gcp.callerIP,
+     alert name=%jevt.value[/protoPayload/request/alertPolicy/displayName])
+  priority: WARNING
+  tags:
+    - Cloud
+    - GCP
+    - GCP_Monitoring
+    - PCI
+    - PCI_DSS
+    - PCI_DSS_ 1.1.1
+    - PCI_DSS_10.1
+    - PCI_DSS_10.2
+    - PCI_DSS_10.3
+    - PCI_DSS_10.5
+    - NIST
+    - NIST_800-53
+    - NIST_800-53_CM-3(1)
+    - NIST_800-53_AU-12(1)
+    - NIST_800-53_AU-3(1)
+    - NIST_800-53_AU-9(2)
+    - FedRAMP
+    - FedRAMP_AU-12(1)
+    - FedRAMP_AU-3(1)
+    - FedRAMP_AU-9(2)
+    - FedRAMP_CM-3(1)
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.16.1.7
+    - ISO_27001_A.18.1.3
+    - HIPAA
+    - HIPAA_164.312(b)
+    - HITRUST
+    - HITRUST_CSF
+    - HITRUST_CSF_09.aa
+    - HITRUST_CSF_10.k
+    - MITRE
+    - MITRE_T1027_obfuscated_files_or_information
+    - MITRE_T1027.005_indicator_removal_from_tools
+    - MITRE_TA0005_defense_evasion
+  source: gcp_auditlog
+
+- rule: GCP Disable Automatic Backups for a Cloud SQL Instance
+  desc: Detect that automatic backups have been disabled for a Cloud SQL instance.
+  condition:
+    gcp.serviceName="cloudsql.googleapis.com" and
+    (
+      gcp.methodName="cloudsql.instances.create" or
+      gcp.methodName="cloudsql.instances.update"
+    ) and
+    jevt.value[/protoPayload/status]={} and
+    jevt.value[/protoPayload/request/body/settings/backupConfiguration/enabled]="false"
+  output:
+    Automatic backups have been disabled for a Cloud SQL instance
+    (requesting user=%gcp.user,
+     requesting IP=%gcp.callerIP,
+     sql instance=%jevt.value[/protoPayload/resourceName])
+  priority: WARNING
+  tags:
+    - Cloud
+    - GCP
+    - GCP_SQL
+    - CIS
+    - CIS_GCP
+    - CIS_GCP_6.7
+  source: gcp_auditlog
+
+- rule: GCP Disable the Requirement for All Incoming Connections to Use SSL for a Cloud SQL Instance
+  desc: Detect that the requirement for all incoming connections to use SSL for a Cloud SQL instance has been disabled.
+  condition:
+    gcp.serviceName="cloudsql.googleapis.com" and
+    (
+      gcp.methodName="cloudsql.instances.create" or
+      gcp.methodName="cloudsql.instances.update"
+    ) and
+    jevt.value[/protoPayload/status]={} and
+    (
+      jevt.value[/protoPayload/request/body/settings/ipConfiguration/requireSsl]="false" or
+      not jevt.value[/protoPayload/request/body/settings/ipConfiguration/requireSsl] exists
+    )
+  output:
+    The requirement for all incoming connections to use SSL for a Cloud SQL instance has been disabled
+    (requesting user=%gcp.user,
+     requesting IP=%gcp.callerIP,
+     sql instance=%jevt.value[/protoPayload/resourceName])
+  priority: WARNING
+  tags:
+    - Cloud
+    - GCP
+    - GCP_SQL
+    - PCI
+    - PCI_DSS
+    - PCI_DSS_1.1.1
+    - PCI_DSS_1.2.1
+    - PCI_DSS_2.3
+    - NIST
+    - NIST_800-53
+    - NIST_800-53_CM-3(1)
+    - NIST_800-53_SC-7(3)
+    - NIST_800-53_SC-7(4)
+    - NIST_800-53_SC-7(21)
+    - NIST_800-53_AC-17(1)
+    - NIST_800-53_AC-17(2)
+    - NIST_800-53_AC-17(3)
+    - FedRAMP
+    - FedRAMP_CM-3(1)
+    - FedRAMP_SC-7(4)
+    - HIPAA
+    - HIPAA_164.310(b)
+    - HITRUST
+    - HITRUST_CSF
+    - HITRUST_CSF_01.j
+    - HITRUST_CSF_01.n
+    - HITRUST_CSF_01.y
+    - HITRUST_CSF_05.i
+    - HITRUST_CSF_09.s
+    - HITRUST_CSF_10.k
+    - CIS
+    - CIS_GCP
+    - CIS_GCP_6.4
+  source: gcp_auditlog
+
+- rule: GCP Set a Public IP for a Cloud SQL Instance
+  desc: Detect that a public IP address has been set for a Cloud SQL instance.
+  condition:
+    gcp.serviceName="cloudsql.googleapis.com" and
+    (
+      gcp.methodName="cloudsql.instances.create" or
+      gcp.methodName="cloudsql.instances.update"
+    ) and
+    jevt.value[/protoPayload/status]={} and
+    jevt.value[/protoPayload/request/body/settings/ipConfiguration/ipv4Enabled]="true"
+  output:
+    A public IP address has been set for a Cloud SQL instance
+    (requesting user=%gcp.user,
+     requesting IP=%gcp.callerIP,
+     sql instance=%jevt.value[/protoPayload/resourceName])
+  priority: WARNING
+  tags:
+    - Cloud
+    - GCP
+    - GCP_SQL
+    - PCI
+    - PCI_DSS
+    - PCI_DSS_1.3
+    - NIST
+    - NIST_800-53
+    - NIST_800-53_SC-7(3)
+    - NIST_800-53_SC-7(4)
+    - NIST_800-53_SC-7(5)
+    - NIST_800-53_SC-7(8)
+    - NIST_800-53_SC-7(21)
+    - FedRAMP
+    - FedRAMP_SC-7(4)
+    - HITRUST
+    - HITRUST_CSF
+    - HITRUST_CSF_01.n
+    - HITRUST_CSF_09.m
+    - CIS
+    - CIS_GCP
+    - CIS_GCP_6.6
+  source: gcp_auditlog
+
+- rule: GCP Delete VPC Network
+  desc: Detect the deletion of a VPC network.
+  condition:
+    gcp.methodName="v1.compute.networks.delete"
+  output:
+    A VPC network has been deleted
+    (requesting user=%gcp.user,
+     requesting IP=%gcp.callerIP,
+     region=%jevt.value[/protoPayload/resourceLocation/currentLocations/0],
+     resource=%jevt.value[/protoPayload/resourceName])
+  priority: CRITICAL
+  tags:
+    - Cloud
+    - GCP
+    - GCP_VPC_Networks
+  source: gcp_auditlog
+
+- rule: GCP Delete VPC Subnetwork
+  desc: Detect the deletion of a VPC subnetwork.
+  condition:
+    gcp.methodName="v1.compute.subnetworks.delete"
+  output:
+    A VPC subnetwork has been deleted
+    (requesting user=%gcp.user,
+     requesting IP=%gcp.callerIP,
+     region=%jevt.value[/protoPayload/resourceLocation/currentLocations/0],
+     resource=%jevt.value[/protoPayload/resourceName])
+  priority: CRITICAL
+  tags:
+    - Cloud
+    - GCP
+    - GCP_VPC_Networks
+  source: gcp_auditlog
+
+- rule: GCP Create VPN
+  desc: Detect creation of a VPN tunnel.
+  condition:
+    gcp.serviceName="compute.googleapis.com" and
+    gcp.methodName="v1.compute.vpnTunnels.insert"
+  output:
+    A VPN tunnel has been created
+    (requesting user=%gcp.user,
+     requesting IP=%gcp.callerIP,
+     region=%jevt.value[/protoPayload/resourceLocation/currentLocations/0],
+     resource=%jevt.value[/protoPayload/resourceName])
+  priority: WARNING
+  tags:
+    - Cloud
+    - GCP
+    - GCP_VPN
+  source: gcp_auditlog
+
+- rule: GCP Delete VPN
+  desc: Detect deletion of a VPN tunnel.
+  condition:
+    gcp.serviceName="compute.googleapis.com" and
+    gcp.methodName="v1.compute.vpnTunnels.delete"
+  output:
+    A VPN tunnel has been deleted
+    (requesting user=%gcp.user,
+     requesting IP=%gcp.callerIP,
+     region=%jevt.value[/resource/labels/location],
+     resource=%jevt.value[/protoPayload/resourceName])
+  priority: WARNING
+  tags:
+    - Cloud
+    - GCP
+    - GCP_VPN
+  source: gcp_auditlog

@@ -1,0 +1,714 @@
+- required_engine_version: 8
+
+- rule: Azure Remember MFA for User Access on Devices
+  desc: |
+    Remembering Multi-Factor Authentication (MFA) for devices and browsers allows users to have the option to by-pass MFA for a set number of days after performing a successful sign-in using MFA. This can enhance usability by minimizing the number of times a user may need to perform two-step verification on the same device. However, if an account or device is compromised, remembering MFA for trusted devices may affect security. Hence, it is recommended that users not be allowed to bypass MFA.
+  condition:
+    jevt.value[/operationName]="Set Company Information" and
+    jevt.value[/properties/result]="success" and
+    jevt.value[/properties/targetResources/0/modifiedProperties/0/displayName]="StrongAuthenticationDetails" and
+    jevt.value[/properties/targetResources/0/modifiedProperties/0/newValue] contains "\"RememberDevicesEnabled\":true"
+  output:
+    Users have been allowed to remember multi-factor authentication on devices
+    (requesting user=%jevt.value[/properties/initiatedBy/user/userPrincipalName],
+     requesting IP=%jevt.value[/properties/initiatedBy/user/ipAddress])
+  priority: WARNING
+  tags:
+    - cloud
+    - azure
+    - azure_ad
+    - CIS
+    - CIS_AZURE
+    - CIS_AZURE_1.4
+  source: azure_platformlogs
+
+- rule: Azure Users Can Consent to Apps Accessing Company Data on Their Behalf
+  desc: |
+    Unless Azure Active Directory is running as an identity provider for third-party applications, do not allow users to use their identity outside of the cloud environment. User profiles contain private information such as phone numbers and email addresses which could then be sold off to other third parties without requiring any further consent from the user.
+  condition:
+    jevt.value[/operationName]="Update company settings" and
+    jevt.value[/properties/result]="success" and
+    jevt.value[/properties/targetResources/0/modifiedProperties/0/displayName]="Non-admin users have permission to consent to applications." and
+    jevt.value[/properties/targetResources/0/modifiedProperties/0/newValue]="true"
+  output:
+    Users have been allowed to consent to apps accessing company data on their behalf
+    (requesting user=%jevt.value[/properties/initiatedBy/user/userPrincipalName],
+     requesting IP=%jevt.value[/properties/initiatedBy/user/ipAddress])
+  priority: WARNING
+  tags:
+    - cloud
+    - azure
+    - azure_ad
+    - CIS
+    - CIS_AZURE
+    - CIS_AZURE_1.9
+  source: azure_platformlogs
+
+- rule: Azure Deactivate MFA for User Access
+  desc: |
+    Multi-factor authentication requires an individual to present a minimum of two separate forms of authentication before access is granted. Multi-factor authentication provides additional assurance that the individual attempting to gain access is who they claim to be. With multi-factor authentication, an attacker would need to compromise at least two different authentication mechanisms, increasing the difficulty of compromise and thus reducing the risk.
+  condition:
+    jevt.value[/operationName]="Disable Strong Authentication" and
+    jevt.value[/properties/result]="success"
+  output:
+    Multi-factor authentication configuration has been disabled for a user
+    (requesting user=%jevt.value[/properties/initiatedBy/user/userPrincipalName],
+     requesting IP=%jevt.value[/properties/initiatedBy/user/ipAddress],
+     target user=%jevt.value[/properties/targetResources/0/userPrincipalName])
+  priority: WARNING
+  tags:
+    - cloud
+    - azure
+    - azure_ad
+    - SOC2
+    - SOC2_CC5.2
+    - PCI
+    - PCI_DSS
+    - PCI_DSS_8.3.1
+    - NIST
+    - NIST_800-171
+    - NIST_800-171_3.1.1
+    - NIST_800-171_3.1.2
+    - NIST_800-53
+    - NIST_800-53_AC-2
+    - FedRAMP
+    - FedRAMP_AC-2
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.9.4.2
+    - HIPAA
+    - HIPAA_164.308(a)
+    - HIPAA_164.312(a)
+    - GDPR
+    - GDPR_25.1
+    - GDPR_25.2
+    - GDPR_25.3
+    - CIS
+    - CIS_AZURE
+    - CIS_AZURE_1.1
+    - CIS_AZURE_1.2
+  source: azure_platformlogs
+
+- rule: Azure Access Level creation attempt for Blob Container Set to Public
+  desc: |
+    Anonymous, public read access to a container and its blobs can be enabled in Azure Blob storage. It grants read-only access to these resources without sharing the account key, and without requiring a shared access signature. It is recommended not to provide anonymous access to blob containers until, and unless, it is strongly desired. A shared access signature token should be used for providing controlled and timed access to blob containers. If no anonymous access is needed on the storage account, it’s recommended to set allowBlobPublicAccess false.
+  condition:
+    jevt.value[/operationName]="MICROSOFT.STORAGE/STORAGEACCOUNTS/WRITE" and
+    jevt.value[/resultType]="Start" and
+    jevt.value[/properties/requestbody] contains "\"allowBlobPublicAccess\":true"
+  output:
+    Anonymous access to blob containers creation attempt has been allowed on storage account
+    (requesting user=%jevt.value[/identity/claims/http:~1~1schemas.xmlsoap.org~1ws~12005~105~1identity~1claims~1name],
+     storage account=%jevt.value[/resourceId])
+  priority: WARNING
+  tags:
+    - cloud
+    - azure
+    - azure_storage_accounts
+    - SOC2
+    - SOC2_CC8.1
+    - PCI
+    - PCI_DSS
+    - PCI_DSS_1.2.1
+    - PCI_DSS_1.3.1
+    - PCI_DSS_1.3.2
+    - PCI_DSS_1.3.4
+    - PCI_DSS_1.3.6
+    - PCI_DSS_7.2.1
+    - NIST
+    - NIST_800-171
+    - NIST_800-171_3.3.7
+    - NIST_800-53
+    - NIST_800-53_AU-8
+    - FedRAMP
+    - FedRAMP_AU-8
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.9.1.2
+    - ISO_27001_A.13.1.1
+    - HITRUST
+    - HITRUST_CSF
+    - HITRUST_CSF_09.aa
+    - HITRUST_CSF_09.af
+    - CIS
+    - CIS_AZURE
+    - CIS_AZURE_3.5
+  source: azure_platformlogs
+
+- rule: Creation attempt Azure Secure Transfer Required Set to Disabled
+  desc: |
+    The secure transfer option enhances the security of a storage account by only allowing requests to the storage account by a secure connection. For example, when calling REST APIs to access storage accounts, the connection must use HTTPS. Any requests using HTTP will be rejected when 'secure transfer required' is enabled. When using the Azure files service, connection without encryption will fail, including scenarios using SMB 2.1, SMB 3.0 without encryption, and some flavors of the Linux SMB client. Because Azure storage doesn’t support HTTPS for custom domain names, this option is not applied when using a custom domain name.
+  condition:
+    jevt.value[/operationName]="MICROSOFT.STORAGE/STORAGEACCOUNTS/WRITE" and
+    jevt.value[/resultType]="Start" and
+    jevt.value[/properties/requestbody] contains "\"supportsHttpsTrafficOnly\":false"
+  output:
+    Data encryption in transit creation attempt has been allowed on storage account
+    (requesting user=%jevt.value[/identity/claims/http:~1~1schemas.xmlsoap.org~1ws~12005~105~1identity~1claims~1name],
+     storage account=%jevt.value[/resourceId])
+  priority: WARNING
+  tags:
+    - cloud
+    - azure
+    - azure_storage_accounts
+    - SOC2
+    - SOC2_CC6.1
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.10.1.1
+    - ISO_27001_A.18.1.5
+    - GDPR
+    - GDPR_32.1
+    - GDPR_32.2
+    - MITRE
+    - MITRE_T1070_indicator_removal_on_host
+    - MITRE_TA0005_defense_evasion
+    - CIS
+    - CIS_AZURE
+    - CIS_AZURE_3.1
+  source: azure_platformlogs
+
+- rule: Azure Auditing on SQL Server Has Been Disabled
+  desc: |
+    The Azure platform allows a SQL server to be created as a service. Enabling auditing at the server level ensures that all existing and newly created databases on the SQL server instance are audited. Auditing policy applied on the SQL database does not override auditing policy and settings applied on the particular SQL server where the database is hosted.
+    Auditing tracks database events and writes them to an audit log in the Azure storage account. It also helps to maintain regulatory compliance, understand database activity, and gain insight into discrepancies and anomalies that could indicate business concerns or suspected security violations.
+  condition:
+    jevt.value[/operationName]="MICROSOFT.INSIGHTS/DIAGNOSTICSETTINGS/DELETE" and
+    jevt.value[/resultType]="Success" and
+    jevt.value[/resourceId] contains "DATABASES/MASTER/PROVIDERS/MICROSOFT.INSIGHTS/DIAGNOSTICSETTINGS/SQLSECURITYAUDITEVENTS_3"
+  output:
+    Auditing in SQL Server has been disabled
+    (requesting user=%jevt.value[/identity/claims/http:~1~1schemas.xmlsoap.org~1ws~12005~105~1identity~1claims~1name],
+     sql server=%jevt.value[/resourceId])
+  priority: WARNING
+  tags:
+    - cloud
+    - azure
+    - azure_database_services
+    - azure_sql_server
+    - CIS
+    - CIS_AZURE
+    - CIS_AZURE_4.1.1
+  source: azure_platformlogs
+
+- rule: Azure Server Vulnerability Assessment on SQL Server Has Been Removed
+  desc: |
+    Vulnerability Assessment setting 'Periodic recurring scans' schedules periodic (weekly) vulnerability scanning for the SQL server and corresponding Databases. Periodic and regular vulnerability scanning provides risk visibility based on updated known vulnerability signatures and best practices.
+  condition:
+    jevt.value[/operationName]="MICROSOFT.AUTHORIZATION/POLICYASSIGNMENTS/DELETE" and
+    jevt.value[/resultType]="Success"
+  output:
+    Vulnerability assessment in SQL Server has been removed
+    (requesting user=%jevt.value[/identity/claims/http:~1~1schemas.xmlsoap.org~1ws~12005~105~1identity~1claims~1name],
+     sql server=%jevt.value[/resourceId])
+  priority: WARNING
+  tags:
+    - cloud
+    - azure
+    - azure_database_services
+    - azure_sql_server
+    - CIS
+    - CIS_AZURE
+    - CIS_AZURE_4.2.2
+    - CIS_AZURE_4.2.3
+  source: azure_platformlogs
+
+- rule: Creation attempt Azure Default Network Access Rule for Storage Account Set to Allow
+  desc: |
+    Storage accounts should be configured to deny access to traffic from all networks (including internet traffic). Access can be granted to traffic from specific Azure Virtual networks, allowing a secure network boundary for specific applications to be built. Access can also be granted to public internet IP address ranges, to enable connections from specific internet or on-premises clients. When network rules are configured, only applications from allowed networks can access a storage account. When calling from an allowed network, applications continue to require proper authorization (a valid access key or SAS token) to access the storage account.
+  condition:
+    jevt.value[/operationName]="MICROSOFT.STORAGE/STORAGEACCOUNTS/WRITE" and
+    jevt.value[/resultType]="Start" and
+    jevt.value[/properties/requestbody] contains "\"defaultAction\":\"Allow\""
+  output:
+    Default network access creation attempt has been allowed on storage account
+    (requesting user=%jevt.value[/identity/claims/http:~1~1schemas.xmlsoap.org~1ws~12005~105~1identity~1claims~1name],
+     storage account=%jevt.value[/resourceId])
+  priority: WARNING
+  tags:
+    - cloud
+    - azure
+    - azure_storage_accounts
+    - SOC2
+    - SOC2_CC8.1
+    - PCI
+    - PCI_DSS
+    - PCI_DSS_1.2.1
+    - PCI_DSS_1.3.1
+    - PCI_DSS_1.3.2
+    - PCI_DSS_1.3.4
+    - PCI_DSS_1.3.6
+    - PCI_DSS_7.2.1
+    - NIST
+    - NIST_800-171
+    - NIST_800-171_3.3.7
+    - NIST_800-53
+    - NIST_800-53_AU-8
+    - FedRAMP
+    - FedRAMP_AU-8
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.9.1.2
+    - ISO_27001_A.13.1.1
+    - HITRUST
+    - HITRUST_CSF
+    - HITRUST_CSF_09.aa
+    - HITRUST_CSF_09.af
+    - CIS
+    - CIS_AZURE
+    - CIS_AZURE_3.6
+  source: azure_platformlogs
+
+- rule: Azure Function App Deleted
+  desc: |
+    A function app has been deleted.
+  condition:
+    jevt.value[/operationName]="MICROSOFT.WEB/SITES/DELETE" and
+    jevt.value[/resultType]="Success"
+  output:
+    A function app has been deleted
+    (requesting user=%jevt.value[/identity/claims/http:~1~1schemas.xmlsoap.org~1ws~12005~105~1identity~1claims~1name],
+     requesting IP=%jevt.value[/callerIpAddress],
+     entity=%jevt.value[/properties/entity])
+  priority: WARNING
+  tags:
+    - cloud
+    - azure
+    - azure_function_apps
+  source: azure_platformlogs
+
+- rule: Azure Function App Deployment Slot Deleted
+  desc: |
+    A function app deployment slot has been deleted.
+  condition:
+    jevt.value[/operationName]="MICROSOFT.WEB/SITES/SLOTS/DELETE" and
+    jevt.value[/resultType]="Success"
+  output:
+    A function app deployment slot has been deleted
+    (requesting user=%jevt.value[/identity/claims/http:~1~1schemas.xmlsoap.org~1ws~12005~105~1identity~1claims~1name],
+     requesting IP=%jevt.value[/callerIpAddress],
+     entity=%jevt.value[/properties/entity])
+  priority: WARNING
+  tags:
+    - cloud
+    - azure
+    - azure_function_apps
+  source: azure_platformlogs
+- rule: Azure Function App Host Key Deleted
+  desc: |
+    A function app host key has been deleted.
+  condition:
+    jevt.value[/operationName]="MICROSOFT.WEB/SITES/HOST/FUNCTIONKEYS/DELETE" and
+    jevt.value[/resultType]="Success"
+  output:
+    A function app host key has been deleted
+    (requesting user=%jevt.value[/identity/claims/http:~1~1schemas.xmlsoap.org~1ws~12005~105~1identity~1claims~1name],
+     requesting IP=%jevt.value[/callerIpAddress],
+     entity=%jevt.value[/properties/entity])
+  priority: WARNING
+  tags:
+    - cloud
+    - azure
+    - azure_function_apps
+  source: azure_platformlogs
+
+- rule: Azure Function App Host Master Key Modified
+  desc: |
+    A function app host master key has been renewed.
+  condition:
+    jevt.value[/operationName]="MICROSOFT.WEB/SITES/HOST/FUNCTIONKEYS/WRITE" and
+    jevt.value[/resultType]="Success" and
+    jevt.value[/resourceId] endswith "/_MASTER"
+  output:
+    A function app host master key has been renewed
+    (requesting user=%jevt.value[/identity/claims/http:~1~1schemas.xmlsoap.org~1ws~12005~105~1identity~1claims~1name],
+     requesting IP=%jevt.value[/callerIpAddress],
+     entity=%jevt.value[/properties/entity])
+  priority: WARNING
+  tags:
+    - cloud
+    - azure
+    - azure_function_apps
+  source: azure_platformlogs
+
+- rule: Azure Function Key Deleted
+  desc: |
+    A function key has been deleted.
+  condition:
+    jevt.value[/operationName]="MICROSOFT.WEB/SITES/FUNCTIONS/KEYS/DELETE" and
+    jevt.value[/resultType]="Success"
+  output:
+    A function key has been deleted
+    (requesting user=%jevt.value[/identity/claims/http:~1~1schemas.xmlsoap.org~1ws~12005~105~1identity~1claims~1name],
+     requesting IP=%jevt.value[/callerIpAddress],
+     entity=%jevt.value[/properties/entity])
+  priority: WARNING
+  tags:
+    - cloud
+    - azure
+    - azure_function_apps
+  source: azure_platformlogs
+
+- rule: Azure Diagnostic Setting Has Been Disabled
+  desc: |
+    A diagnostic setting controls how a diagnostic log is exported. By default, logs are retained only for 90 days. Diagnostic settings should be defined so that logs can be exported and stored for a longer duration in order to analyze security activities within an Azure subscription.
+  condition:
+    jevt.value[/operationName]="MICROSOFT.INSIGHTS/DIAGNOSTICSETTINGS/DELETE" and
+    jevt.value[/resultType]="Success" and
+    jevt.value[/resourceId] contains "PROVIDERS/MICROSOFT.INSIGHTS/DIAGNOSTICSETTINGS/"
+  output:
+    Diagnostic setting has been disabled for a resource
+    (requesting user=%jevt.value[/identity/claims/http:~1~1schemas.xmlsoap.org~1ws~12005~105~1identity~1claims~1name],
+     resource id=%jevt.value[/resourceId])
+  priority: WARNING
+  tags:
+    - cloud
+    - azure
+    - azure_logging_and_monitoring
+    - SOC2
+    - SOC2_CC7.2
+    - NIST
+    - NIST_800-171
+    - NIST_800-171_3.14.6
+    - NIST_800-171_3.14.7
+    - NIST_800-53
+    - NIST_800-53_SI-4
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.18.1.3
+    - HIPAA
+    - HIPAA_164.308(a)
+    - HITRUST
+    - HITRUST_CSF
+    - HITRUST_CSF_01.x
+    - HITRUST_CSF_09.ab
+    - HITRUST_CSF_09.ac
+    - HITRUST_CSF_09.m
+    - HITRUST_CSF_11.a
+    - HITRUST_CSF_11.b
+    - GDPR
+    - GDPR_32.1
+    - GDPR_32.2
+    - MITRE
+    - MITRE_T1485_data_destruction
+    - MITRE_T1562_impair_defenses
+    - MITRE_T1562.001_disable_or_modify_tools
+    - MITRE_TA0005_defense_evasion
+    - MITRE_TA0040_impact
+    - CIS
+    - CIS_AZURE
+    - CIS_AZURE_5.1.1
+  source: azure_platformlogs
+
+- rule: Azure RDP Access Is Allowed from The Internet
+  desc: |
+    The potential security problem with using RDP over the Internet is that attackers can use various brute force techniques to gain access to Azure Virtual Machines. Once the attackers gain access, they can use a virtual machine as a launch point for compromising other machines on an Azure Virtual Network or even attack networked devices outside of Azure.
+  condition:
+    jevt.value[/operationName]="MICROSOFT.NETWORK/NETWORKSECURITYGROUPS/SECURITYRULES/WRITE" and
+    jevt.value[/resultType]="Accept" and
+    jevt.value[/properties/responseBody] contains "\"access\":\"Allow\"" and
+    (
+      jevt.value[/properties/responseBody] contains "\"destinationPortRange\":\"3389\"" or
+      jevt.value[/properties/responseBody] contains "\"destinationPortRange\":\"*\""
+    ) and
+    jevt.value[/properties/responseBody] contains "\"direction\":\"Inbound\"" and
+    jevt.value[/properties/responseBody] contains "\"protocol\":\"TCP\"" and
+    (
+      jevt.value[/properties/responseBody] contains "\"sourceAddressPrefix\":\"*\"" or
+      jevt.value[/properties/responseBody] contains "\"sourceAddressPrefix\":\"0.0.0.0\"" or
+      jevt.value[/properties/responseBody] contains "\"sourceAddressPrefix\":\"<nw>/0\"" or
+      jevt.value[/properties/responseBody] contains "\"sourceAddressPrefix\":\"/0\"" or
+      jevt.value[/properties/responseBody] contains "\"sourceAddressPrefix\":\"internet\"" or
+      jevt.value[/properties/responseBody] contains "\"sourceAddressPrefix\":\"any\""
+    )
+  output:
+    RDP access to a VM has been enabled from the internet
+    (requesting user=%jevt.value[/identity/claims/http:~1~1schemas.xmlsoap.org~1ws~12005~105~1identity~1claims~1name],
+     resource id=%jevt.value[/resourceId])
+  priority: CRITICAL
+  tags:
+    - cloud
+    - azure
+    - azure_networking
+    - SOC2
+    - SOC2_CC6.6
+    - SOC2_CC7.2
+    - PCI
+    - PCI_DSS
+    - PCI_DSS_1.2.1
+    - PCI_DSS_1.3.1
+    - PCI_DSS_2.2.2
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.14.1.2
+    - CIS
+    - CIS_AZURE
+    - CIS_AZURE_6.1
+  source: azure_platformlogs
+
+- rule: Azure SSH Access Is Allowed from The Internet
+  desc: |
+    The potential security problem with using SSH over the Internet is that attackers can use various brute force techniques to gain access to Azure Virtual Machines. Once the attackers gain access, they can use a virtual machine as a launch point for compromising other machines on the Azure Virtual Network or even attack networked devices outside of Azure.
+  condition:
+    jevt.value[/operationName]="MICROSOFT.NETWORK/NETWORKSECURITYGROUPS/SECURITYRULES/WRITE" and
+    jevt.value[/resultType]="Accept" and
+    jevt.value[/properties/responseBody] contains "\"access\":\"Allow\"" and
+    (
+      jevt.value[/properties/responseBody] contains "\"destinationPortRange\":\"22\"" or
+      jevt.value[/properties/responseBody] contains "\"destinationPortRange\":\"*\""
+    ) and
+    jevt.value[/properties/responseBody] contains "\"direction\":\"Inbound\"" and
+    jevt.value[/properties/responseBody] contains "\"protocol\":\"TCP\"" and
+    (
+      jevt.value[/properties/responseBody] contains "\"sourceAddressPrefix\":\"*\"" or
+      jevt.value[/properties/responseBody] contains "\"sourceAddressPrefix\":\"0.0.0.0\"" or
+      jevt.value[/properties/responseBody] contains "\"sourceAddressPrefix\":\"<nw>/0\"" or
+      jevt.value[/properties/responseBody] contains "\"sourceAddressPrefix\":\"/0\"" or
+      jevt.value[/properties/responseBody] contains "\"sourceAddressPrefix\":\"internet\"" or
+      jevt.value[/properties/responseBody] contains "\"sourceAddressPrefix\":\"any\""
+    )
+  output:
+    SSH access to a VM has been enabled from the internet
+    (requesting user=%jevt.value[/identity/claims/http:~1~1schemas.xmlsoap.org~1ws~12005~105~1identity~1claims~1name],
+     resource id=%jevt.value[/resourceId])
+  priority: WARNING
+  tags:
+    - cloud
+    - azure
+    - azure_networking
+    - SOC2
+    - SOC2_CC6.6
+    - SOC2_CC7.2
+    - PCI
+    - PCI_DSS
+    - PCI_DSS_1.2.1
+    - PCI_DSS_1.3.1
+    - PCI_DSS_2.2.2
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.14.1.2
+    - CIS
+    - CIS_AZURE
+    - CIS_AZURE_6.2
+  source: azure_platformlogs
+
+- rule: Azure Access Level for Blob Container Set to Public
+  desc: |
+    Anonymous, public read access to a container and its blobs can be enabled in Azure Blob storage. It grants read-only access to these resources without sharing the account key, and without requiring a shared access signature. It is recommended not to provide anonymous access to blob containers until, and unless, it is strongly desired. A shared access signature token should be used for providing controlled and timed access to blob containers. If no anonymous access is needed on the storage account, it’s recommended to set allowBlobPublicAccess false.
+  condition:
+    jevt.value[/operationName]="MICROSOFT.STORAGE/STORAGEACCOUNTS/WRITE" and
+    jevt.value[/resultType]="Success" and
+    jevt.value[/resultSignature]="Succeeded.OK" and
+    jevt.value[/properties/responseBody] contains "\"allowBlobPublicAccess\":true"
+  output:
+    Anonymous access to blob containers has been allowed on storage account
+    (requesting user=%jevt.value[/identity/claims/http:~1~1schemas.xmlsoap.org~1ws~12005~105~1identity~1claims~1name],
+     storage account=%jevt.value[/resourceId])
+  priority: WARNING
+  tags:
+    - cloud
+    - azure
+    - azure_storage_accounts
+    - SOC2
+    - SOC2_CC8.1
+    - PCI
+    - PCI_DSS
+    - PCI_DSS_1.2.1
+    - PCI_DSS_1.3.1
+    - PCI_DSS_1.3.2
+    - PCI_DSS_1.3.4
+    - PCI_DSS_1.3.6
+    - PCI_DSS_7.2.1
+    - NIST
+    - NIST_800-171
+    - NIST_800-171_3.3.7
+    - NIST_800-53
+    - NIST_800-53_AU-8
+    - FedRAMP
+    - FedRAMP_AU-8
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.9.1.2
+    - ISO_27001_A.13.1.1
+    - HITRUST
+    - HITRUST_CSF
+    - HITRUST_CSF_09.aa
+    - HITRUST_CSF_09.af
+    - CIS
+    - CIS_AZURE
+    - CIS_AZURE_3.5
+  source: azure_platformlogs
+
+- rule: Azure Default Network Access Rule for Storage Account Set to Allow
+  desc: |
+    Storage accounts should be configured to deny access to traffic from all networks (including internet traffic). Access can be granted to traffic from specific Azure Virtual networks, allowing a secure network boundary for specific applications to be built. Access can also be granted to public internet IP address ranges, to enable connections from specific internet or on-premises clients. When network rules are configured, only applications from allowed networks can access a storage account. When calling from an allowed network, applications continue to require proper authorization (a valid access key or SAS token) to access the storage account.
+  condition:
+    jevt.value[/operationName]="MICROSOFT.STORAGE/STORAGEACCOUNTS/WRITE" and
+    jevt.value[/resultType]="Success" and
+    jevt.value[/resultSignature]="Succeeded.OK" and
+    jevt.value[/properties/responseBody] contains "\"defaultAction\":\"Allow\""
+  output:
+    Default network access has been allowed on storage account
+    (requesting user=%jevt.value[/identity/claims/http:~1~1schemas.xmlsoap.org~1ws~12005~105~1identity~1claims~1name],
+     storage account=%jevt.value[/resourceId])
+  priority: WARNING
+  tags:
+    - cloud
+    - azure
+    - azure_storage_accounts
+    - SOC2
+    - SOC2_CC8.1
+    - PCI
+    - PCI_DSS
+    - PCI_DSS_1.2.1
+    - PCI_DSS_1.3.1
+    - PCI_DSS_1.3.2
+    - PCI_DSS_1.3.4
+    - PCI_DSS_1.3.6
+    - PCI_DSS_7.2.1
+    - NIST
+    - NIST_800-171
+    - NIST_800-171_3.3.7
+    - NIST_800-53
+    - NIST_800-53_AU-8
+    - FedRAMP
+    - FedRAMP_AU-8
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.9.1.2
+    - ISO_27001_A.13.1.1
+    - HITRUST
+    - HITRUST_CSF
+    - HITRUST_CSF_09.aa
+    - HITRUST_CSF_09.af
+    - CIS
+    - CIS_AZURE
+    - CIS_AZURE_3.6
+  source: azure_platformlogs
+
+- rule: Azure Secure Transfer Required Set to Disabled
+  desc: |
+    The secure transfer option enhances the security of a storage account by only allowing requests to the storage account by a secure connection. For example, when calling REST APIs to access storage accounts, the connection must use HTTPS. Any requests using HTTP will be rejected when 'secure transfer required' is enabled. When using the Azure files service, connection without encryption will fail, including scenarios using SMB 2.1, SMB 3.0 without encryption, and some flavors of the Linux SMB client. Because Azure storage doesn’t support HTTPS for custom domain names, this option is not applied when using a custom domain name.
+  condition:
+    jevt.value[/operationName]="MICROSOFT.STORAGE/STORAGEACCOUNTS/WRITE" and
+    jevt.value[/resultType]="Success" and
+    jevt.value[/resultSignature]="Succeeded.OK" and
+    jevt.value[/properties/responseBody] contains "\"supportsHttpsTrafficOnly\":false"
+  output:
+    Data encryption in transit has been disabled
+    (requesting user=%jevt.value[/identity/claims/http:~1~1schemas.xmlsoap.org~1ws~12005~105~1identity~1claims~1name],
+     storage account=%jevt.value[/resourceId])
+  priority: WARNING
+  tags:
+    - cloud
+    - azure
+    - azure_storage_accounts
+    - SOC2
+    - SOC2_CC6.1
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.10.1.1
+    - ISO_27001_A.18.1.5
+    - GDPR
+    - GDPR_32.1
+    - GDPR_32.2
+    - MITRE
+    - MITRE_T1070_indicator_removal_on_host
+    - MITRE_TA0005_defense_evasion
+    - CIS
+    - CIS_AZURE
+    - CIS_AZURE_3.1
+  source: azure_platformlogs
+
+- rule: Azure Blob Created
+  desc: |
+    A blob has been created in a storage container.
+  condition:
+    jevt.value[/operationName]="PutBlob" and
+    jevt.value[/statusText]="Success"
+  output:
+    A blob has been created in a storage container
+    (requesting IP=%jevt.value[/callerIpAddress],
+     storage account=%jevt.value[/properties/accountName],
+     blob uri=%jevt.value[/uri])
+  priority: WARNING
+  tags:
+    - cloud
+    - azure
+    - azure_storage_accounts
+  source: azure_platformlogs
+- rule: Azure Blob Deleted
+  desc: |
+    A blob has been deleted from a storage container.
+  condition:
+    jevt.value[/operationName]="DeleteBlob" and
+    jevt.value[/statusText]="Success"
+  output:
+    A blob has been deleted from a storage container
+    (requesting IP=%jevt.value[/callerIpAddress],
+     storage account=%jevt.value[/properties/accountName],
+     blob uri=%jevt.value[/uri])
+  priority: WARNING
+  tags:
+    - cloud
+    - azure
+    - azure_storage_accounts
+  source: azure_platformlogs
+- rule: Azure Container Created
+  desc: |
+    A Container has been created.
+  condition:
+    jevt.value[/operationName]="MICROSOFT.STORAGE/STORAGEACCOUNTS/BLOBSERVICES/CONTAINERS/WRITE" and
+    jevt.value[/resultType]="Success"
+  output:
+    A container has been created
+    (requesting IP=%jevt.value[/callerIpAddress],
+     container id=%jevt.value[/properties/entity])
+  priority: WARNING
+  tags:
+    - cloud
+    - azure
+    - azure_storage_accounts
+  source: azure_platformlogs
+
+- rule: Azure Container Deleted
+  desc: |
+    A Container has been deleted.
+  condition:
+    jevt.value[/operationName]="MICROSOFT.STORAGE/STORAGEACCOUNTS/BLOBSERVICES/CONTAINERS/DELETE" and
+    jevt.value[/resultType]="Success"
+  output:
+    A container has been deleted
+    (requesting IP=%jevt.value[/callerIpAddress],
+     entity=%jevt.value[/properties/entity])
+  priority: WARNING
+  tags:
+    - cloud
+    - azure
+    - azure_storage_accounts
+  source: azure_platformlogs
+
+- rule: Azure Container ACL Modified
+  desc: |
+    A container ACL has been modified.
+  condition:
+    jevt.value[/operationName]="SetContainerACL" and
+    jevt.value[/statusText]="Success"
+  output:
+    A container ACL has been modified
+    (requesting IP=%jevt.value[/callerIpAddress],
+     storage account=%jevt.value[/properties/accountName],
+     container uri=%jevt.value[/uri])
+  priority: WARNING
+  tags:
+    - cloud
+    - azure
+    - azure_storage_accounts
+    - ISO
+    - ISO_27001
+    - ISO_27001_A.9.1.2
+    - MITRE
+    - MITRE_T1070_indicator_removal_on_host
+    - MITRE_TA0005_defense_evasion
+  source: azure_platformlogs
+
