@@ -1,0 +1,994 @@
+
+- name: Sysdig Runtime Threat Intelligence
+  externalId: "1"
+  description: This policy contains rules using Indicators of Compromise curated by the Sysdig Threat Intelligence Team from premium, OSINT, and custom threat intelligence feeds. Any events from the rules in this policy should be considered serious and investigated as soon as possible. 
+  severity: 3
+  enabled: true
+  actions: []
+  rules:
+    - ruleName: Detect crypto miners using the Stratum protocol
+      enabled: true
+    - ruleName: Detect outbound connections to TOR Entry Nodes
+      enabled: true
+    - ruleName: Detect outbound connections to common miner pool ports
+      enabled: true
+    - ruleName: Launch malicious container image
+      enabled: true
+    - ruleName: Malicious IPs or domains detected on command line
+      enabled: true
+    - ruleName: Malicious binary detected
+      enabled: true
+    - ruleName: Malicious Environment Variable in Spawned Process
+      enabled: true
+    - ruleName: Malicious filenames written
+      enabled: true
+    - ruleName: Outbound Connection to C2 Servers
+      enabled: true
+  type: falco
+
+
+- name: Sysdig Runtime Threat Detection
+  externalId: "2"
+  description: This policy contains rules which Sysdig considers High Confidence of a security incident. They are tightly coupled to common attacker TTP's. They have been designed to minimize false positives but may still result in some depending on your environment. 
+  severity: 3
+  enabled: true
+  actions: []
+  rules:
+    - ruleName: Base64'd ELF file on Command Line
+      enabled: true
+    - ruleName: Base64-encoded Python Script Execution
+      enabled: true
+    - ruleName: Base64-encoded Shell Script Execution
+      enabled: true
+    - ruleName: Create Symlink Over Sensitive Files
+      enabled: true
+    - ruleName: Debugfs Launched in Privileged Container
+      enabled: true
+    - ruleName: Detect curl Using Socks Proxy
+      enabled: true
+    - ruleName: eBPF Program Loaded into Kernel  
+      enabled: true
+    - ruleName: Execution from /dev/shm
+      enabled: true
+    - ruleName: Execution of binary using ld-linux
+      enabled: true
+    - ruleName: Find AWS Credentials
+      enabled: true
+    - ruleName: Linux Kernel Module Injection Detected
+      enabled: true
+    - ruleName: Modify ld.so.preload
+      enabled: true
+    - ruleName: Mount Launched in Privileged Container
+      enabled: true
+    - ruleName: Netcat Remote Code Execution in Container
+      enabled: true
+    - ruleName: Polkit Local Privilege Escalation Vulnerability (CVE-2021-4034)
+      enabled: true
+    - ruleName: Possible Backdoor using BPF
+      enabled: true
+    - ruleName: Privileged Shell Spawned Inside Container
+      enabled: true
+    - ruleName: Reconnaissance attempt to find SUID binaries
+      enabled: true
+    - ruleName: Search Private Keys or Passwords
+      enabled: true
+    - ruleName: Sudo Potential Privilege Escalation
+      enabled: true
+    - ruleName: Suspicious Cron Modification
+      enabled: true
+    - ruleName: Suspicious Home Directory Creation
+      enabled: true
+    - ruleName: Suspicious Java Child Processes
+      enabled: true
+    - ruleName: Tampering with Security Software in Container
+      enabled: true
+    - ruleName: Unprivileged Delegation of Page Faults Handling to a Userspace Process
+      enabled: true
+    - ruleName: Detect malicious cmdlines
+      enabled: true
+    - ruleName: Detect reconnaissance scripts
+      enabled: true
+    - ruleName: PTRACE anti-debug attempt
+      enabled: true
+    - ruleName: PTRACE attached to process
+      enabled: true
+    - ruleName: GPG Key Reconnaissance
+      enabled: true
+    - ruleName: nsenter Container Escape
+      enabled: true
+  type: falco
+
+- name: Sysdig Runtime Notable Events
+  externalId: "3"
+  description: This Notable Events policy contains rules which may indicate undesired behavior including security threats. The rules are more generalized than Threat Detection policies and may result in more noise. Tuning will likely be required for the events generated from this policy.
+  severity: 5
+  enabled: false
+  actions: []
+  rules:
+    - ruleName: Clear Log Activities
+      enabled: true
+    - ruleName: Container Run as Root User
+      enabled: true
+    - ruleName: Create Hidden Files or Directories
+      enabled: true
+    - ruleName: Create files below dev
+      enabled: true
+    - ruleName: DB program spawned process
+      enabled: true
+    - ruleName: Delete Bash History
+      enabled: true
+    - ruleName: Delete or rename shell history
+      enabled: true
+    - ruleName: Execution from /tmp
+      enabled: true
+    - ruleName: Launch Disallowed Container
+      enabled: true
+    - ruleName: Launch Package Management Process in Container
+      enabled: true
+    - ruleName: Launch Privileged Container
+      enabled: true
+    - ruleName: Launch Remote File Copy Tools in Container
+      enabled: true
+    - ruleName: Launch Root User Container
+      enabled: true
+    - ruleName: Launch Sensitive Mount Container
+      enabled: true
+    - ruleName: Launch Suspicious Network Tool in Container
+      enabled: true
+    - ruleName: Launch Suspicious Network Tool on Host
+      enabled: true
+    - ruleName: Mkdir binary dirs
+      enabled: true
+    - ruleName: Modify binary dirs
+      enabled: true
+    - ruleName: Outbound or Inbound Traffic not to Authorized Server Process and Port
+      enabled: true
+    - ruleName: Packet socket created in container
+      enabled: true
+    - ruleName: Program run with disallowed http proxy env
+      enabled: true
+    - ruleName: Read sensitive file untrusted
+      enabled: true
+    - ruleName: Redirect STDOUT/STDIN to Network Connection in Container
+      enabled: true
+    - ruleName: Remove Bulk Data from Disk
+      enabled: true
+    - ruleName: Run shell untrusted
+      enabled: true
+    - ruleName: Suspicious Operations with Firewalls
+      enabled: true
+    - ruleName: System user interactive
+      enabled: true
+    - ruleName: Terminal shell in container
+      enabled: true
+    - ruleName: The docker client is executed in a container
+      enabled: true
+    - ruleName: Unexpected K8s NodePort Connection
+      enabled: true
+  type: falco
+
+- name: Sysdig Runtime Activity Logs
+  externalId: "4"
+  description: This policy contains rules which provide a greater insight into general activities occuring on the system. They are very noisy, but useful in threat hunting situations if you are looking for specific actions being taken during runtime. It is not recommended to use this policy for detection purposes unless tuning is enabled.  Additional manual tuning will likely be required.
+  severity: 7
+  enabled: false
+  actions: []
+  rules:
+    - ruleName: Change thread namespace
+      enabled: true
+    - ruleName: Contact EC2 Instance Metadata Service From Container
+      enabled: true
+    - ruleName: Contact K8S API Server From Container
+      enabled: true
+    - ruleName: Contact cloud metadata service from container
+      enabled: true
+    - ruleName: Interpreted procs inbound network activity
+      enabled: true
+    - ruleName: Interpreted procs outbound network activity
+      enabled: true
+    - ruleName: Launch Ingress Remote File Copy Tools in Container
+      enabled: true
+    - ruleName: Modify Shell Configuration File
+      enabled: true
+    - ruleName: Network Connection outside Local Subnet
+      enabled: true
+    - ruleName: Non sudo setuid
+      enabled: true
+    - ruleName: Read Shell Configuration File
+      enabled: true
+    - ruleName: Read sensitive file trusted after startup
+      enabled: true
+    - ruleName: Read ssh information
+      enabled: true
+    - ruleName: Schedule Cron Jobs
+      enabled: true
+    - ruleName: Set Setuid or Setgid bit
+      enabled: true
+    - ruleName: System procs network activity
+      enabled: true
+    - ruleName: Unexpected UDP Traffic
+      enabled: true
+    - ruleName: Update Package Repository
+      enabled: true
+    - ruleName: User mgmt binaries
+      enabled: true
+    - ruleName: Write below binary dir
+      enabled: true
+    - ruleName: Write below etc
+      enabled: true
+    - ruleName: Write below monitored dir
+      enabled: true
+    - ruleName: Write below root
+      enabled: true
+    - ruleName: Write below rpm database
+      enabled: true
+  type: falco
+
+- name: Sysdig AWS Threat Intelligence
+  externalId: "5"
+  description: This policy contains rules using Indicators of Compromise curated by the Sysdig Threat Intelligence Team from premium, OSINT, and custom threat intelligence feeds. Any events from the rules in this policy should be considered serious and investigated as soon as possible.
+  severity: 3
+  enabled: true
+  actions: []
+  rules:
+    - ruleName: AWS Suspicious IP Inbound Request
+      enabled: true
+  type: aws_cloudtrail
+
+- name: Sysdig AWS Threat Detection
+  externalId: "6"
+  description: This policy contains rules which Sysdig considers High Confidence of a security incident. They are tightly coupled to common attacker TTP's. They have been designed to minimize false positives but may still result in some depending on your environment. 
+  severity: 3
+  enabled: true
+  actions: []
+  rules:
+    - ruleName: Console Root Login Without MFA
+      enabled: true
+    - ruleName: Schedule Key Deletion
+      enabled: true
+  type: aws_cloudtrail
+
+- name: Sysdig AWS Notable Events
+  externalId: "7"
+  description: This Notable Events policy contains rules which may indicate undesired behavior including security threats. The rules are more generalized than Threat Detection policies and may result in more noise. Tuning will likely be required for the events generated from this policy.
+  severity: 5
+  enabled: false
+  actions: []
+  rules:
+    - ruleName: Attach Administrator Policy
+      enabled: true
+    - ruleName: CloudTrail Multi-region Disabled
+      enabled: true
+    - ruleName: CloudTrail Trail Deleted
+      enabled: true
+    - ruleName: Console Login Without MFA
+      enabled: true
+    - ruleName: Create Access Key for Root User
+      enabled: true
+    - ruleName: Create Access Key for User
+      enabled: true
+    - ruleName: Create HTTP Target Group without SSL
+      enabled: true
+    - ruleName: Create IAM Policy that Allows All
+      enabled: true
+    - ruleName: Create Public DMS Replication Instance
+      enabled: true
+    - ruleName: Create RDS DB Instance with Public Access
+      enabled: true
+    - ruleName: Create Security Group Rule Allowing Ingress Open to the World
+      enabled: true
+    - ruleName: Create Security Group Rule Allowing SSH Ingress
+      enabled: true
+    - ruleName: Create a Network ACL Entry Allowing Ingress Open to the World
+      enabled: true
+    - ruleName: Deactivate Hardware MFA for Root User
+      enabled: true
+    - ruleName: Deactivate MFA for Root User
+      enabled: true
+    - ruleName: Deactivate MFA for User Access
+      enabled: true
+    - ruleName: Deactivate Virtual MFA for Root User
+      enabled: true
+    - ruleName: Delete Bucket Encryption
+      enabled: true
+    - ruleName: Delete Bucket Public Access Block
+      enabled: true
+    - ruleName: Delete Virtual MFA for Root User
+      enabled: true
+    - ruleName: Disable EBS Encryption by Default
+      enabled: true
+    - ruleName: Disable GuardDuty
+      enabled: true
+    - ruleName: EBS Volume Creation without Encryption at Rest
+      enabled: true
+    - ruleName: EC2 Serial Console Access Enabled
+      enabled: true
+    - ruleName: Elasticsearch Domain Creation without Encryption at Rest
+      enabled: true
+    - ruleName: Logged in without Using MFA
+      enabled: true
+    - ruleName: Make EBS Snapshot Public
+      enabled: true
+    - ruleName: Make RDS DB Instance Public
+      enabled: true
+    - ruleName: Make RDS Snapshot Public
+      enabled: true
+    - ruleName: Root User Executing AWS Command
+      enabled: true
+    - ruleName: Update Account Password Policy Expiring in More Than 90 Days
+      enabled: true
+    - ruleName: Update Account Password Policy Not Expiring
+      enabled: true
+    - ruleName: Update Account Password Policy Not Preventing Reuse of Last 24 Passwords
+      enabled: true
+    - ruleName: Update Account Password Policy Not Preventing Reuse of Last 4 Passwords
+      enabled: true
+    - ruleName: Update Account Password Policy Not Requiring 14 Characters
+      enabled: true
+    - ruleName: Update Account Password Policy Not Requiring 7 Characters
+      enabled: true
+    - ruleName: Update Account Password Policy Not Requiring Lowercase
+      enabled: true
+    - ruleName: Update Account Password Policy Not Requiring Number
+      enabled: true
+    - ruleName: Update Account Password Policy Not Requiring Symbol
+      enabled: true
+    - ruleName: Update Account Password Policy Not Requiring Uppercase
+      enabled: true
+  type: aws_cloudtrail
+
+- name: Sysdig AWS Activity Logs
+  externalId: "8"
+  description: This policy contains rules which provide a greater insight into general activities occuring on the system. They are very noisy, but useful in threat hunting situations if you are looking for specific actions being taken in AWS. It is not recommended to use this policy for detection purposes unless tuning is enabled.  Additional manual tuning will likely be required.
+  severity: 7
+  enabled: false
+  actions: []
+  rules:
+    - ruleName: Accept VPC Peering Connection
+      enabled: true
+    - ruleName: Add AWS User to Group
+      enabled: true
+    - ruleName: Allocate New Elastic IP Address to AWS Account
+      enabled: true
+    - ruleName: Associate Elastic IP Address to AWS Network Interface
+      enabled: true
+    - ruleName: Associate VPC with Hosted Zone
+      enabled: true
+    - ruleName: Attach IAM Policy to User
+      enabled: true
+    - ruleName: Attach Internet Gateway
+      enabled: true
+    - ruleName: Authorize DB Security Group Ingress
+      enabled: true
+    - ruleName: Authorize Security Group Egress
+      enabled: true
+    - ruleName: Authorize Security Group Ingress
+      enabled: true
+    - ruleName: Batch Disable Standards
+      enabled: true
+    - ruleName: Change Resource Record Sets
+      enabled: true
+    - ruleName: CloudShell Environment Created
+      enabled: true
+    - ruleName: CloudTrail Logfile Encryption Disabled
+      enabled: true
+    - ruleName: CloudTrail Logfile Validation Disabled
+      enabled: true
+    - ruleName: CloudTrail Logging Disabled
+      enabled: true
+    - ruleName: CloudTrail Trail Created
+      enabled: true
+    - ruleName: CloudTrail Trail Updated
+      enabled: true
+    - ruleName: CloudWatch Delete Alarms
+      enabled: true
+    - ruleName: CloudWatch Delete Log Group
+      enabled: true
+    - ruleName: CloudWatch Delete Log Stream
+      enabled: true
+    - ruleName: Console Login Failure
+      enabled: true
+    - ruleName: Console Login Success
+      enabled: true
+    - ruleName: Console Login Through Assume Role
+      enabled: true
+    - ruleName: Create AWS user
+      enabled: true
+    - ruleName: Create AWS user (SSO)
+      enabled: true
+    - ruleName: Create App Runner Service from Code Repository
+      enabled: true
+    - ruleName: Create App Runner Service from Image Repository
+      enabled: true
+    - ruleName: Create Autoscaling Group without ELB Health Checks
+      enabled: true
+    - ruleName: Create Customer Master Key
+      enabled: true
+    - ruleName: Create DB Cluster
+      enabled: true
+    - ruleName: Create DB Security Group
+      enabled: true
+    - ruleName: Create Global Cluster
+      enabled: true
+    - ruleName: Create Group
+      enabled: true
+    - ruleName: Create Internet-facing AWS Public Facing Load Balancer
+      enabled: true
+    - ruleName: Create Lambda Function
+      enabled: true
+    - ruleName: Create Lambda Function Not Using Latest Runtime
+      enabled: true
+    - ruleName: Create Lambda Function Using Unsupported Runtime
+      enabled: true
+    - ruleName: Create SageMaker Notebook Instance with Direct Internet Access
+      enabled: true
+    - ruleName: Create Snapshot
+      enabled: true
+    - ruleName: Create VPC Peering Connection
+      enabled: true
+    - ruleName: Create VPC Route
+      enabled: true
+    - ruleName: Create VPC with Default Security Group
+      enabled: true
+    - ruleName: Create VPC with No Flow Log
+      enabled: true
+    - ruleName: Create a Network ACL
+      enabled: true
+    - ruleName: Create a Network ACL Entry
+      enabled: true
+    - ruleName: Delete AWS user
+      enabled: true
+    - ruleName: Delete AWS user (SSO)
+      enabled: true
+    - ruleName: Delete Action Target
+      enabled: true
+    - ruleName: Delete App Runner Service
+      enabled: true
+    - ruleName: Delete Bucket CORS
+      enabled: true
+    - ruleName: Delete Bucket Lifecycle
+      enabled: true
+    - ruleName: Delete Bucket Policy
+      enabled: true
+    - ruleName: Delete Bucket Replication
+      enabled: true
+    - ruleName: Delete Cluster
+      enabled: true
+    - ruleName: Delete Config Rule
+      enabled: true
+    - ruleName: Delete Configuration Aggregator
+      enabled: true
+    - ruleName: Delete Configuration Recorder
+      enabled: true
+    - ruleName: Delete Conformance Pack
+      enabled: true
+    - ruleName: Delete DB Cluster
+      enabled: true
+    - ruleName: Delete DB Security Group
+      enabled: true
+    - ruleName: Delete DB Snapshot
+      enabled: true
+    - ruleName: Delete Delivery Channel
+      enabled: true
+    - ruleName: Delete Detector
+      enabled: true
+    - ruleName: Delete Group
+      enabled: true
+    - ruleName: Delete Listener
+      enabled: true
+    - ruleName: Delete Organization Config Rule
+      enabled: true
+    - ruleName: Delete Organization Conformance Pack
+      enabled: true
+    - ruleName: Delete Remediation Configuration
+      enabled: true
+    - ruleName: Delete Retention Configuration
+      enabled: true
+    - ruleName: Delete Subnet
+      enabled: true
+    - ruleName: Delete VPC Flow Log
+      enabled: true
+    - ruleName: Delete WAF Rule Group
+      enabled: true
+    - ruleName: Delete Web ACL
+      enabled: true
+    - ruleName: Delete a Network ACL
+      enabled: true
+    - ruleName: Delete a Network ACL Entry
+      enabled: true
+    - ruleName: Deploy App Runner Service
+      enabled: true
+    - ruleName: Describe Instances
+      enabled: true
+    - ruleName: Disable CMK Rotation
+      enabled: true
+    - ruleName: Disable Import Findings for Product
+      enabled: true
+    - ruleName: Disable Key
+      enabled: true
+    - ruleName: Disable Security Hub
+      enabled: true
+    - ruleName: Dissociate Lambda Function from VPC
+      enabled: true
+    - ruleName: ECR Image Pushed
+      enabled: true
+    - ruleName: ECS Service Created
+      enabled: true
+    - ruleName: ECS Service Deleted
+      enabled: true
+    - ruleName: ECS Service Task Definition Updated
+      enabled: true
+    - ruleName: ECS Task Run or Started
+      enabled: true
+    - ruleName: ECS Task Stopped
+      enabled: true
+    - ruleName: Elasticsearch Domain Creation without VPC
+      enabled: true
+    - ruleName: Execute Command inside an ECS Container
+      enabled: true
+    - ruleName: Execute Interactive Command inside an ECS Container
+      enabled: true
+    - ruleName: Get Password Data
+      enabled: true
+    - ruleName: Get Secret Value
+      enabled: true
+    - ruleName: Guard Duty Delete Members
+      enabled: true
+    - ruleName: Guard Duty Disassociate Members
+      enabled: true
+    - ruleName: Guard Duty Disassociate from Master Account
+      enabled: true
+    - ruleName: List Buckets
+      enabled: true
+    - ruleName: Modify Image Attribute
+      enabled: true
+    - ruleName: Modify Listener
+      enabled: true
+    - ruleName: Modify RDS Snapshot Attribute
+      enabled: true
+    - ruleName: Modify Snapshot Attribute
+      enabled: true
+    - ruleName: Password Recovery Requested
+      enabled: true
+    - ruleName: Put Bucket ACL
+      enabled: true
+    - ruleName: Put Bucket CORS
+      enabled: true
+    - ruleName: Put Bucket Lifecycle
+      enabled: true
+    - ruleName: Put Bucket Policy
+      enabled: true
+    - ruleName: Put Bucket Replication
+      enabled: true
+    - ruleName: Put Config Rule
+      enabled: true
+    - ruleName: Put Configuration Aggregator
+      enabled: true
+    - ruleName: Put Conformance Pack
+      enabled: true
+    - ruleName: Put Delivery Channel
+      enabled: true
+    - ruleName: Put IAM Inline Policy to User
+      enabled: true
+    - ruleName: Put Inline Policy in Group to Allow Access to All Resources
+      enabled: true
+    - ruleName: Put Object in Watched Bucket
+      enabled: true
+    - ruleName: Put Organization Config Rule
+      enabled: true
+    - ruleName: Put Organization Conformance Pack
+      enabled: true
+    - ruleName: Put Remediation Configurations
+      enabled: true
+    - ruleName: Put Remediation Exceptions
+      enabled: true
+    - ruleName: Put Retention Configuration
+      enabled: true
+    - ruleName: Read Object in Watched Bucket
+      enabled: true
+    - ruleName: Read Object through AWSSupportServiceRolePolicy Assumed Role
+      enabled: true
+    - ruleName: Register Domain
+      enabled: true
+    - ruleName: Remove AWS User from Group
+      enabled: true
+    - ruleName: Remove KMS Key Rotation
+      enabled: true
+    - ruleName: Replace Route
+      enabled: true
+    - ruleName: Replace a Network ACL Association
+      enabled: true
+    - ruleName: Replace a Network ACL Entry
+      enabled: true
+    - ruleName: Revoke DB Security Group Ingress
+      enabled: true
+    - ruleName: Revoke Security Group Egress
+      enabled: true
+    - ruleName: Revoke Security Group Ingress
+      enabled: true
+    - ruleName: Run Instances
+      enabled: true
+    - ruleName: Security Hub Delete Members
+      enabled: true
+    - ruleName: Security Hub Disassociate From Master Account
+      enabled: true
+    - ruleName: Security Hub Disassociate Members
+      enabled: true
+    - ruleName: Stop Configuration Recorder
+      enabled: true
+    - ruleName: Stop DB Cluster
+      enabled: true
+    - ruleName: Stop DB Instance
+      enabled: true
+    - ruleName: Stop Monitoring Members
+      enabled: true
+    - ruleName: Terminal Shell in ECS Container
+      enabled: true
+    - ruleName: Update Action Target
+      enabled: true
+    - ruleName: Update Assume Role Policy
+      enabled: true
+    - ruleName: Update Autoscaling Group without ELB Health Checks
+      enabled: true
+    - ruleName: Update Lambda Function Code
+      enabled: true
+    - ruleName: Update Lambda Function Configuration
+      enabled: true
+    - ruleName: Update Standards Control
+      enabled: true
+  type: aws_cloudtrail
+
+- name: Sysdig GCP Threat Intelligence
+  externalId: "9"
+  description: This policy contains rules using Indicators of Compromise curated by the Sysdig Threat Intelligence Team from premium, OSINT, and custom threat intelligence feeds. Any events from the rules in this policy should be considered serious and investigated as soon as possible.
+  severity: 3
+  enabled: true
+  actions: []
+  rules:
+    - ruleName: GCP Suspicious IP Inbound Request
+      enabled: true
+  type: gcp_auditlog
+
+- name: Sysdig GCP Threat Detection
+  externalId: "10"
+  description: This policy contains rules which Sysdig considers High Confidence of a security incident. They are tightly coupled to common attacker TTP's. They have been designed to minimize false positives but may still result in some depending on your environment. 
+  severity: 3
+  enabled: true
+  actions: []
+  rules:
+    - ruleName: GCP Cloud Armor Blocked Connection
+      enabled: true
+    - ruleName: GCP Cloud IDS Alert
+      enabled: true
+    - ruleName: GCP Remote Access Allowed from Internet
+      enabled: true
+    - ruleName: GCP Super Admin Executing Command
+      enabled: true
+  type: gcp_auditlog
+
+- name: Sysdig GCP Notable Events
+  externalId: "11"
+  description: This Notable Events policy contains rules which may indicate undesired behavior including security threats. The rules are more generalized than Threat Detection policies and may result in more noise. Tuning will likely be required for the events generated from this policy.
+  severity: 5
+  enabled: false
+  actions: []
+  rules:
+    - ruleName: GCP App Engine Firewall Rule Deleted
+      enabled: true
+    - ruleName: GCP Compute Firewall Rule Deleted
+      enabled: true
+    - ruleName: GCP Create GCP-managed Service Account Key
+      enabled: true
+    - ruleName: GCP Create User-managed Service Account Key
+      enabled: true
+    - ruleName: GCP Delete Compute VM Instance
+      enabled: true
+    - ruleName: GCP Delete DLP Job
+      enabled: true
+    - ruleName: GCP Delete DNS Zone
+      enabled: true
+    - ruleName: GCP Delete GKE Cluster
+      enabled: true
+    - ruleName: GCP Delete GKE Node Pool
+      enabled: true
+    - ruleName: GCP Delete IAM Role
+      enabled: true
+    - ruleName: GCP Delete Resources from the PCI Blueprint Environment
+      enabled: true
+    - ruleName: GCP Delete Router
+      enabled: true
+    - ruleName: GCP Delete VPC Network
+      enabled: true
+    - ruleName: GCP Delete VPN
+      enabled: true
+    - ruleName: GCP KMS Schedule Key Deletion
+      enabled: true
+    - ruleName: GCP Paused DLP Job
+      enabled: true
+    - ruleName: GCP Sensitive Role Added to User
+      enabled: true
+    - ruleName: GCP Service Account Role Granted to User
+      enabled: true
+  type: gcp_auditlog
+
+- name: Sysdig GCP Activity Logs
+  externalId: "12"
+  description: This policy contains rules which provide a greater insight into general activities occuring on the system. They are very noisy, but useful in threat hunting situations if you are looking for specific actions being taken in GCP. It is not recommended to use this policy for detection purposes unless tuning is enabled.  Additional manual tuning will likely be required.
+  severity: 7
+  enabled: false
+  actions: []
+  rules:
+    - ruleName: CloudRun Create Service
+      enabled: true
+    - ruleName: CloudRun Replace Service
+      enabled: true
+    - ruleName: GCP Allow Public Access to Bucket
+      enabled: true
+    - ruleName: GCP App Engine Firewall Rule Created
+      enabled: true
+    - ruleName: GCP App Engine Firewall Rule Updated
+      enabled: true
+    - ruleName: GCP Compute Firewall Rule Created
+      enabled: true
+    - ruleName: GCP Compute Firewall Rule Updated
+      enabled: true
+    - ruleName: GCP Create API Keys for a Project
+      enabled: true
+    - ruleName: GCP Create Bucket
+      enabled: true
+    - ruleName: GCP Create Cloud Function
+      enabled: true
+    - ruleName: GCP Create Cloud Function v2
+      enabled: true
+    - ruleName: GCP Create Cloud Function Not Using Latest Runtime
+      enabled: true
+    - ruleName: GCP Create Cloud Function v2 Not Using Latest Runtime
+      enabled: true
+    - ruleName: GCP Create DLP Job
+      enabled: true
+    - ruleName: GCP Create DNS Record
+      enabled: true
+    - ruleName: GCP Create DNS Zone
+      enabled: true
+    - ruleName: GCP Create KMS Key Without Rotation
+      enabled: true
+    - ruleName: GCP Create VPN
+      enabled: true
+    - ruleName: GCP Create a Default VPC Network
+      enabled: true
+    - ruleName: GCP Create or Patch DNS Zone without DNSSEC
+      enabled: true
+    - ruleName: GCP Creation of a VM Instance with IP Forwarding Enabled
+      enabled: true
+    - ruleName: GCP Delete Bucket
+      enabled: true
+    - ruleName: GCP Delete DNS Record
+      enabled: true
+    - ruleName: GCP Describe Instance
+      enabled: true
+    - ruleName: GCP Disable Automatic Backups for a Cloud SQL Instance
+      enabled: true
+    - ruleName: GCP Disable Subnet Flow Logs
+      enabled: true
+    - ruleName: GCP Disable the Requirement for All Incoming Connections to Use SSL for a Cloud SQL Instance
+      enabled: true
+    - ruleName: GCP Enable Connecting to Serial Ports for a VM Instance
+      enabled: true
+    - ruleName: GCP Enable Project-wide SSH keys for a VM Instance
+      enabled: true
+    - ruleName: GCP List Bucket Objects
+      enabled: true
+    - ruleName: GCP List Buckets
+      enabled: true
+    - ruleName: GCP Monitoring Alert Deleted
+      enabled: true
+    - ruleName: GCP Monitoring Alert Updated
+      enabled: true
+    - ruleName: GCP Put Bucket ACL
+      enabled: true
+    - ruleName: GCP Remove KMS Key Rotation
+      enabled: true
+    - ruleName: GCP Set Bucket IAM Policy
+      enabled: true
+    - ruleName: GCP Set a Public IP for a Cloud SQL Instance
+      enabled: true
+    - ruleName: GCP Shield Disabled for a VM Instance
+      enabled: true
+    - ruleName: GCP Suspected Disable of OS Login in a VM Instance
+      enabled: true
+    - ruleName: GCP Update Bucket
+      enabled: true
+    - ruleName: GCP Update DNS Record
+      enabled: true
+    - ruleName: GCP Update DNS Zone
+      enabled: true
+    - ruleName: GCP Update Cloud Function
+      enabled: true
+    - ruleName: GCP Update Cloud Function v2
+      enabled: true
+    - ruleName: GCP Update, Disable or Delete Sink
+      enabled: true
+    - ruleName: GCP Updated DLP Job
+      enabled: true
+  type: gcp_auditlog
+
+- name: Sysdig Azure Threat Detection
+  externalId: "13"
+  description: This policy contains rules which Sysdig considers High Confidence of a security incident. They are tightly coupled to common attacker TTP's. They have been designed to minimize false positives but may still result in some depending on your environment. 
+  severity: 3
+  enabled: true
+  actions: []
+  rules:
+    - ruleName: Azure Deactivate MFA for User Access
+      enabled: true
+    - ruleName: Azure RDP Access Is Allowed from The Internet
+      enabled: true
+  type: azure_platformlogs
+
+
+- name: Sysdig Azure Notable Events
+  externalId: "14"
+  description: This Notable Events policy contains rules which may indicate undesired behavior including security threats. The rules are more generalized than Threat Detection policies and may result in more noise. Tuning will likely be required for the events generated from this policy.
+  severity: 5
+  enabled: false
+  actions: []
+  rules:
+    - ruleName: Azure Auditing on SQL Server Has Been Disabled
+      enabled: true
+    - ruleName: Azure SSH Access Is Allowed from The Internet
+      enabled: true
+    - ruleName: Azure Secure Transfer Required Set to Disabled
+      enabled: true
+    - ruleName: Azure Server Vulnerability Assessment on SQL Server Has Been Removed
+      enabled: true
+    - ruleName: Creation attempt Azure Default Network Access Rule for Storage Account Set to Allow
+      enabled: true
+    - ruleName: Creation attempt Azure Secure Transfer Required Set to Disabled
+      enabled: true
+  type: azure_platformlogs
+
+- name: Sysdig Azure Activity Logs
+  externalId: "15"
+  description: This policy contains rules which provide a greater insight into general activities occuring on the system. They are very noisy, but useful in threat hunting situations if you are looking for specific actions being taken in Azure. It is not recommended to use this policy for detection purposes unless tuning is enabled.  Additional manual tuning will likely be required.
+  severity: 7
+  enabled: false
+  actions: []
+  rules:
+    - ruleName: Azure Access Level creation attempt for Blob Container Set to Public
+      enabled: true
+    - ruleName: Azure Access Level for Blob Container Set to Public
+      enabled: true
+    - ruleName: Azure Blob Created
+      enabled: true
+    - ruleName: Azure Blob Deleted
+      enabled: true
+    - ruleName: Azure Container ACL Modified
+      enabled: true
+    - ruleName: Azure Container Created
+      enabled: true
+    - ruleName: Azure Container Deleted
+      enabled: true
+    - ruleName: Azure Default Network Access Rule for Storage Account Set to Allow
+      enabled: true
+    - ruleName: Azure Diagnostic Setting Has Been Disabled
+      enabled: true
+    - ruleName: Azure Function App Deleted
+      enabled: true
+    - ruleName: Azure Function App Deployment Slot Deleted
+      enabled: true
+    - ruleName: Azure Function App Host Key Deleted
+      enabled: true
+    - ruleName: Azure Function App Host Master Key Modified
+      enabled: true
+    - ruleName: Azure Function Key Deleted
+      enabled: true
+    - ruleName: Azure Remember MFA for User Access on Devices
+      enabled: true
+    - ruleName: Azure Users Can Consent to Apps Accessing Company Data on Their Behalf
+      enabled: true
+  type: azure_platformlogs
+
+- name: Sysdig K8s Threat Detection
+  externalId: "16"
+  description: This policy contains rules which Sysdig considers High Confidence of a security incident. They are tightly coupled to common attacker TTP's. They have been designed to minimize false positives but may still result in some depending on your enviornment. 
+  severity: 3
+  enabled: true
+  actions: []
+  rules:
+  type: k8s_audit
+
+- name: Sysdig K8s Notable Events
+  externalId: "17"
+  description: This Notable Events policy contains rules which may indicate undesired behavior including security threats. The rules are more generalized than Threat Detection policies and may result in more noise. Tuning will likely be required for the events generated from this policy.
+  severity: 5
+  enabled: false
+  actions: []
+  rules:
+    - ruleName: Anonymous Request Allowed
+      enabled: true
+    - ruleName: Attach to cluster-admin Role
+      enabled: true
+    - ruleName: Attach/Exec Pod
+      enabled: true
+    - ruleName: Create Disallowed Namespace
+      enabled: true
+    - ruleName: Create Privileged Pod
+      enabled: true
+    - ruleName: Disallowed K8s User
+      enabled: true
+    - ruleName: Full K8s Administrative Access
+      enabled: true
+    - ruleName: Untrusted Node Unsuccessfully Tried to Join the Cluster
+      enabled: true
+    - ruleName: Untrusted Node Successfully Joined the Cluster
+      enabled: true
+  type: k8s_audit
+
+- name: Sysdig K8s Activity Logs
+  externalId: "18"
+  description: This policy contains rules which provide a greater insight into general activities occuring on the system. They are very noisy, but useful in threat hunting situations if you are looking for specific actions being taken in Kubernetes. It is not recommended to use this policy for detection purposes unless tuning is enabled.  Additional manual tuning will likely be required.
+  severity: 7
+  enabled: false
+  actions: []
+  rules:
+    - ruleName: All K8s Audit Events
+      enabled: true
+    - ruleName: ClusterRole With Pod Exec Created
+      enabled: true
+    - ruleName: ClusterRole With Wildcard Created
+      enabled: true
+    - ruleName: ClusterRole With Write Privileges Created
+      enabled: true
+    - ruleName: Create Disallowed Pod
+      enabled: true
+    - ruleName: Create HostNetwork Pod
+      enabled: true
+    - ruleName: Create NodePort Service
+      enabled: true
+    - ruleName: Create Sensitive Mount Pod
+      enabled: true
+    - ruleName: Create/Modify Configmap With Private Credentials
+      enabled: true
+    - ruleName: EphemeralContainers Created
+      enabled: true
+    - ruleName: Ingress Object without TLS Certificate Created
+      enabled: true
+    - ruleName: K8s ConfigMap Created
+      enabled: true
+    - ruleName: K8s ConfigMap Deleted
+      enabled: true
+    - ruleName: K8s Deployment Created
+      enabled: true
+    - ruleName: K8s Deployment Deleted
+      enabled: true
+    - ruleName: K8s Namespace Created
+      enabled: true
+    - ruleName: K8s Namespace Deleted
+      enabled: true
+    - ruleName: K8s Role/Clusterrole Created
+      enabled: true
+    - ruleName: K8s Role/Clusterrole Deleted
+      enabled: true
+    - ruleName: K8s Role/Clusterrolebinding Created
+      enabled: true
+    - ruleName: K8s Role/Clusterrolebinding Deleted
+      enabled: true
+    - ruleName: K8s Secret Created
+      enabled: true
+    - ruleName: K8s Secret Deleted
+      enabled: true
+    - ruleName: K8s Service Created
+      enabled: true
+    - ruleName: K8s Service Deleted
+      enabled: true
+    - ruleName: K8s Serviceaccount Created
+      enabled: true
+    - ruleName: K8s Serviceaccount Deleted
+      enabled: true
+    - ruleName: Pod Created in Kube Namespace
+      enabled: true
+    - ruleName: Service Account Created in Kube Namespace
+      enabled: true
+    - ruleName: System ClusterRole Modified/Deleted
+      enabled: true
+  type: k8s_audit
