@@ -1,0 +1,379 @@
+- name: Suspicious Filesystem Changes
+  description: Identified suspicious filesystem activity that might change sensitive/important files
+  severity: 3
+  enabled: true
+  actions: []
+  ruleNames:
+    - Modify Shell Configuration File
+    - Linux Kernel Module Injection Detected
+    - Remove Bulk Data from Disk
+    - Create Symlink Over Sensitive Files
+    - Set Setuid or Setgid bit
+    - Execution from /dev/shm
+    - Execution from /tmp
+  type: falco
+
+- name: Unexpected Spawned Processes
+  description: Identified unusual spawned processes by programs that do not normally spawn them (e.g. DB programs, shells by non-shell programs, etc.)
+  severity: 5
+  enabled: true
+  actions: []
+  ruleNames:
+    - DB program spawned process
+    - Run shell untrusted
+    - System user interactive
+    - Privileged Shell Spawned Inside Container
+  type: falco
+
+- name: Notable Filesystem Changes
+  description: Identified notable filesystem activity that might change sensitive/important files. This differs from Suspicious Filesystem Changes in that it looks more broadly at filesystem activity, and might have more false positives as a result.
+  severity: 7
+  enabled: false
+  actions: []
+  ruleNames:
+    - Write below monitored dir
+    - Update Package Repository
+    - Create Hidden Files or Directories
+    - Search Private Keys or Passwords
+    - Delete or rename shell history
+    - Delete Bash History
+    - Schedule Cron Jobs
+    - Modify binary dirs
+    - Mkdir binary dirs
+    - Create files below dev
+    - Clear Log Activities
+    - User mgmt binaries
+    - Non sudo setuid
+    - Read Shell Configuration File
+    - Read ssh information
+    - Read sensitive file trusted after startup
+    - Read sensitive file untrusted
+    - Suspicious Cron Modification
+  type: falco
+
+- name: Suspicious Container Activity
+  description: Identified suspicious container-related activity (execs into containers, etc)
+  severity: 3
+  enabled: true
+  actions: []
+  ruleNames:
+    - Terminal shell in container
+    - Launch Disallowed Container
+    - Launch Remote File Copy Tools in Container
+    - Debugfs Launched in Privileged Container
+    - Unprivileged Delegation of Page Faults Handling to a Userspace Process
+    - Tampering with Security Software in Container
+    - eBPF Program Loaded into Kernel
+  type: falco
+
+- name: Suspicious Lateral Movement Activity to Cloud
+  description: Identified suspicious Metadata Activity for lateral movement to cloud
+  severity: 5
+  enabled: true
+  actions: []
+  ruleNames:
+    - Contact EC2 Instance Metadata Service From Container
+    - Contact cloud metadata service from container
+    - Find AWS Credentials
+  type: falco
+
+- name: Notable Container Activity
+  description: Identified notable container activitities going against best practices (e.g. run as root etc)
+  severity: 7
+  enabled: false
+  actions: []
+  ruleNames:
+    - Container Run as Root User
+    - Launch Root User Container
+    - Launch Privileged Container
+    - Launch Sensitive Mount Container
+    - Container Drift Detected (chmod)
+    - Container Drift Detected (open+create)
+    - The docker client is executed in a container
+    - Packet socket created in container
+    - Contact K8S API Server From Container
+    - Unexpected K8s NodePort Connection
+    - Netcat Remote Code Execution in Container
+    - Launch Suspicious Network Tool in Container
+    - Launch Package Management Process in Container
+    - Mount Launched in Privileged Container
+    - Launch Ingress Remote File Copy Tools in Container
+    - Redirect STDOUT/STDIN to Network Connection in Container
+  type: falco
+
+- name: Notable Network Activity
+  description: Identified unusual network activity e.g. programs that do not normally use network connections opening a network connection, etc.
+  severity: 7
+  enabled: false
+  actions: []
+  ruleNames:
+    - System procs network activity
+    - Program run with disallowed http proxy env
+    - Interpreted procs inbound network activity
+    - Interpreted procs outbound network activity
+    - Launch Suspicious Network Tool on Host
+    - Network Connection outside Local Subnet
+    - Unexpected UDP Traffic
+    - Outbound or Inbound Traffic not to Authorized Server Process and Port
+    - Disallowed SSH Connection
+    - Suspicious Operations with Firewalls
+  type: falco
+
+- name: Access Cryptomining Network
+  description: "Identified unusual network connection to crytomining network (note: enable rule might trigger alert from cloud provider as policy engine will do DNS lookups for crytomining domain)"
+  severity: 3
+  enabled: true
+  actions: []
+  ruleNames:
+    - Detect outbound connections to common miner pool ports
+    - Detect crypto miners using the Stratum protocol
+  type: falco
+
+- name: IoCs Malware Activity
+  description: "Identified unusual activity related to Malwares"
+  severity: 3
+  enabled: true
+  actions: []
+  ruleNames:
+    - Malicious IPs or domains detected on command line
+    - Malicious binary detected
+    - Malicious filenames written
+    - Malicious C2 IPs or domains exploiting log4j
+    - Base64'd ELF file on Command Line
+    - Base64-encoded Python Script Execution
+    - Base64-encoded Shell Script Execution
+    - Outbound Connection to C2 Servers
+    - Detect outbound connections to TOR Entry Nodes
+    - Execution of binary using ld-linux
+    - Suspicious Home Directory Creation
+    - Reconnaissance attempt to find SUID binaries
+    - GPG Key Reconnaissance
+    - Suspicious Java Child Processes
+    - Launch malicious container image
+    - Malicious Environment Variable in Spawned Process
+    - Detect curl Using Socks Proxy
+    - Detect malicious cmdlines
+    - Detect reconnaissance scripts
+    - PTRACE anti-debug attempt
+    - PTRACE attached to process
+    - nsenter Container Escape
+  type: falco
+
+- name: Known Exploit Detection
+  description: Identified potential exploits of well-known vulnerabilities (CVEs)
+  severity: 3
+  enabled: true
+  actions: []
+  ruleNames:
+    - Sudo Potential Privilege Escalation
+    - Polkit Local Privilege Escalation Vulnerability (CVE-2021-4034)
+    - Possible Backdoor using BPF
+  type: falco
+
+- name: All K8s Activity
+  description: Show all K8s Audit activity in the audit stream. This is likely a high volume of events and should not be enabled by default.
+  actions: []
+  severity: 7
+  enabled: false
+  ruleNames:
+    - All K8s Audit Events
+  type: k8s_audit
+
+- name: All K8s User Modifications
+  description: Identify K8s Audit activity related to user/rbac changes (adding/removing/modifying users, roles, etc.)
+  severity: 7
+  enabled: false
+  actions: []
+  ruleNames:
+    - K8s Serviceaccount Created
+    - K8s Serviceaccount Deleted
+    - K8s Role/Clusterrole Created
+    - K8s Role/Clusterrole Deleted
+    - K8s Role/Clusterrolebinding Created
+    - K8s Role/Clusterrolebinding Deleted
+  type: k8s_audit
+
+- name: All K8s Object Modifications
+  description: Identify K8s Audit activity related to object changes (adding/removing/modifying pods, services, etc).
+  severity: 7
+  enabled: false
+  actions: []
+  ruleNames:
+    - K8s Deployment Created
+    - K8s Deployment Deleted
+    - K8s Service Created
+    - K8s Service Deleted
+    - K8s ConfigMap Created
+    - K8s ConfigMap Deleted
+    - K8s Namespace Created
+    - K8s Namespace Deleted
+    - K8s Secret Created
+    - K8s Secret Deleted
+  type: k8s_audit
+
+- name: Suspicious K8s Activity
+  description: Identify Suspicious/Unexpected K8s Activity (execing into pods, etc.)
+  severity: 4
+  enabled: true
+  actions: []
+  ruleNames:
+    - Attach/Exec Pod
+    - Untrusted Node Successfully Joined the Cluster
+    - Untrusted Node Unsuccessfully Tried to Join the Cluster
+    - EphemeralContainers Created
+  type: k8s_audit
+
+- name: Inadvised K8s User Activity
+  description: Identify inadvised K8s audit activity related to users/roles/rolebindings
+  severity: 4
+  enabled: true
+  actions: []
+  ruleNames:
+    - Anonymous Request Allowed
+    - Service Account Created in Kube Namespace
+    - Attach to cluster-admin Role
+    - ClusterRole With Wildcard Created
+    - ClusterRole With Write Privileges Created
+    - Create/Modify Configmap With Private Credentials
+    - ClusterRole With Pod Exec Created
+  type: k8s_audit
+
+- name: Suspicious K8s User Activity
+  description: Identify suspicious/unexpected K8s Activity related to users (modifying system roles/bindings, etc.)
+  severity: 3
+  enabled: true
+  actions: []
+  ruleNames:
+    - System ClusterRole Modified/Deleted
+    - Full K8s Administrative Access
+  type: k8s_audit
+
+- name: Inadvised K8s Activity
+  description: Identify inadvised K8s audit activity related to pods, services, etc.
+  severity: 7
+  enabled: false
+  actions: []
+  ruleNames:
+    - Create Sensitive Mount Pod
+    - Create HostNetwork Pod
+    - Create NodePort Service
+    - Pod Created in Kube Namespace
+    - Ingress Object without TLS Certificate Created
+  type: k8s_audit
+
+- name: Create Privileged Pod
+  description: Identify a K8s pod being created with privileged=true
+  severity: 4
+  enabled: true
+  actions: []
+  ruleNames:
+    - Create Privileged Pod
+  type: k8s_audit
+
+- name: Disallowed K8s Activity
+  description: Identify K8s audit activity outside of an explicitly allowed set (images, users, etc).
+  severity: 3
+  enabled: false
+  actions: []
+  ruleNames:
+    - Disallowed K8s User
+    - Create Disallowed Pod
+    - Create Disallowed Namespace
+  type: k8s_audit
+
+- name: Sysdig AWS Best Practices
+  description: The Sysdig AWS Best Practices policy is a set of rules that detect when your AWS accounts and resources deviate from security best practices.
+  severity: 4
+  enabled: true
+  actions: []
+  ruleNames:
+    - Root User Executing AWS Command
+    - Create IAM Policy that Allows All
+    - CloudTrail Multi-region Disabled
+    - Make EBS Snapshot Public
+    - Create Access Key for Root User
+    - Create Access Key for User
+    - Deactivate Hardware MFA for Root User
+    - Deactivate MFA for Root User
+    - Deactivate Virtual MFA for Root User
+    - Delete Virtual MFA for Root User
+    - Delete Bucket Encryption
+    - Delete Bucket Public Access Block
+    - CloudTrail Logging Disabled
+    - Create Security Group Rule Allowing SSH Ingress
+    - Delete WAF Rule Group
+    - Console Login Without MFA
+    - Put Inline Policy in Group to Allow Access to All Resources
+    - Attach Administrator Policy
+    - Deactivate MFA for User Access
+    - CloudTrail Trail Deleted
+    - CloudTrail Logfile Encryption Disabled
+    - CloudWatch Delete Alarms
+    - Stop Configuration Recorder
+    - Console Root Login Without MFA
+    - Disable EBS Encryption by Default
+    - Get Password Data
+    - Delete Detector
+    - Disable GuardDuty
+    - Create Customer Master Key
+    - Disable CMK Rotation
+    - Remove KMS Key Rotation
+    - Create Lambda Function Not Using Latest Runtime
+    - Delete DB Security Group
+    - Delete Bucket CORS
+    - Batch Disable Standards
+    - Delete Action Target
+    - Security Hub Delete Members
+    - Disable Security Hub
+    - Disable Import Findings for Product
+    - Security Hub Disassociate From Master Account
+    - Security Hub Disassociate Members
+    - AWS Suspicious IP Inbound Request
+  type: aws_cloudtrail
+
+- name: Sysdig GCP Best Practices
+  description: The Sysdig GCP Best Practices policy is a set of rules that detect when your GCP accounts and resources deviate from security best practices.
+  severity: 4
+  enabled: true
+  actions: []
+  ruleNames:
+    - GCP Create Cloud Function Not Using Latest Runtime
+    - GCP Disable Subnet Flow Logs
+    - GCP Update, Disable or Delete Sink
+    - GCP Enable Connecting to Serial Ports for a VM Instance
+    - GCP Suspected Disable of OS Login in a VM Instance
+    - GCP Enable Project-wide SSH keys for a VM Instance
+    - GCP Shield Disabled for a VM Instance
+    - GCP Create or Patch DNS Zone without DNSSEC
+    - GCP Command Executed on Unused Region
+    - GCP Invitation Sent to Non-corporate Account
+    - GCP Super Admin Executing Command
+    - GCP Monitoring Alert Deleted
+    - GCP Disable Automatic Backups for a Cloud SQL Instance
+    - GCP Disable the Requirement for All Incoming Connections to Use SSL for a Cloud SQL Instance
+    - GCP Allow Public Access to Bucket
+    - GCP Suspicious IP Inbound Request
+    - GCP KMS Schedule Key Deletion
+    - GCP Paused DLP Job
+    - GCP Delete DLP Job
+    - GCP App Engine Firewall Rule Deleted
+    - GCP Compute Firewall Rule Deleted
+    - GCP Service Account Role Granted to User
+    - GCP Sensitive Role Added to User
+    - GCP Cloud Armor Blocked Connection
+    - GCP Cloud IDS Alert
+    - GCP Remote Access Allowed from Internet
+  type: gcp_auditlog
+
+- name: Sysdig Azure Best Practices
+  description: The Sysdig Azure Best Practices policy is a set of rules that detect when your Azure subscriptions and resources deviate from security best practices.
+  severity: 4
+  enabled: true
+  actions: []
+  ruleNames:
+    - Azure Diagnostic Setting Has Been Disabled
+    - Azure RDP Access Is Allowed from The Internet
+    - Azure SSH Access Is Allowed from The Internet
+    - Azure Access Level creation attempt for Blob Container Set to Public
+    - Azure Access Level for Blob Container Set to Public
+  type: azure_platformlogs
